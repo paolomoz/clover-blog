@@ -1,27 +1,230 @@
-.cards > ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* donor card system: 16px radii, hairline borders, flat at rest */
+
+.cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 36px 24px;
 }
 
-.cards > ul > li {
-  border: 1px solid #dadada;
-  background-color: var(--background-color);
+.cards .card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
-.cards .cards-card-body {
-  margin: 16px;
+.cards .card:hover {
+  transform: translateY(-2px);
+  box-shadow: rgb(0 0 0 / 5%) 0 2px 8px 0;
 }
 
-.cards .cards-card-image {
-  line-height: 0;
+.cards .card:hover .title-link {
+  color: var(--color-forest);
+  text-decoration: underline;
 }
 
-.cards > ul > li img {
+@media (prefers-reduced-motion: reduce) {
+  .cards .card {
+    transition: none;
+  }
+
+  .cards .card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.cards .card > picture img {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: auto;
+  aspect-ratio: 3 / 2;
   object-fit: cover;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.cards .card-body {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cards .card-title {
+  font-family: var(--heading-font-family);
+  font-weight: 600;
+  font-size: var(--heading-md);
+  line-height: 1.3;
+  letter-spacing: 0;
+  margin: 0;
+  color: var(--color-fg);
+}
+
+.cards .excerpt {
+  font-size: var(--body-sm);
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--color-fg);
+}
+
+.cards .card-note {
+  font-size: var(--body-sm);
+  font-weight: 300;
+  color: var(--color-slate);
+}
+
+.cards .card-note em {
+  font-style: normal;
+}
+
+.cards .card-body .read-more {
+  padding-top: var(--spacing-xs);
+}
+
+.cards .card-cta {
+  margin-top: auto;
+  padding-top: var(--spacing-sm);
+}
+
+/* ---- featured: large feature + stacked rows (3:2 split) ---- */
+.cards.featured {
+  grid-template-columns: 3fr 2fr;
+  align-items: stretch;
+}
+
+.cards.featured .card-feature > picture img {
+  aspect-ratio: 16 / 9;
+}
+
+.cards.featured .card-feature .card-title {
+  font-size: var(--heading-lg);
+  font-weight: 400;
+  line-height: 1.42;
+}
+
+.cards.featured .card-feature .card-body {
+  padding: var(--spacing-lg);
+  gap: var(--spacing-md);
+}
+
+.cards.featured .card-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.cards.featured .card-row {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  min-height: 44px;
+}
+
+.cards.featured .card-row > picture {
+  height: 100%;
+}
+
+.cards.featured .card-row > picture img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: cover;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+.cards.featured .card-row .card-body {
+  padding: var(--spacing-md);
+}
+
+/* ---- featured-pair (2:1) ---- */
+.cards.featured-pair {
+  grid-template-columns: 2fr 1fr;
+  align-items: stretch;
+}
+
+.cards.featured-pair .card > picture img {
+  aspect-ratio: 16 / 9;
+}
+
+.cards.featured-pair .card .card-body {
+  padding: var(--spacing-lg);
+  gap: var(--spacing-md);
+}
+
+.cards.featured-pair .card-feature .card-title {
+  font-size: var(--heading-lg);
+  font-weight: 400;
+  line-height: 1.42;
+}
+
+/* ---- related posts (2-up at ~2/3 width) ---- */
+.cards.related {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 66%;
+}
+
+/* ---- webinars (feature + card, natural image ratios) ---- */
+.cards.webinars {
+  grid-template-columns: 3fr 2fr;
+  align-items: stretch;
+}
+
+.cards.webinars .card > picture img {
+  aspect-ratio: auto;
+}
+
+.cards.webinars .card-feature .card-body {
+  padding: var(--spacing-lg);
+  gap: var(--spacing-md);
+  align-items: flex-start;
+}
+
+.cards.webinars .card-feature .card-title {
+  font-size: var(--heading-lg);
+  font-weight: 400;
+  line-height: 1.42;
+}
+
+.cards.webinars .card p {
+  font-size: var(--body);
+  font-weight: 400;
+}
+
+.cards.webinars .card p.card-note {
+  font-size: var(--body-sm);
+  font-weight: 300;
+}
+
+/* ---- responsive ---- */
+@media (width <= 1024px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cards.featured,
+  .cards.featured-pair,
+  .cards.webinars {
+    grid-template-columns: 1fr;
+  }
+
+  .cards.related {
+    max-width: none;
+  }
+
+  .cards.featured .card-row {
+    flex: none;
+  }
+}
+
+@media (width <= 640px) {
+  .cards,
+  .cards.related {
+    grid-template-columns: 1fr;
+  }
+
+  .cards.featured .card-row {
+    grid-template-columns: 120px 1fr;
+  }
 }

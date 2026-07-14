@@ -1,37 +1,17 @@
-.hero-container .hero-wrapper {
-  max-width: unset;
-  padding: 0;
-}
+/* full-bleed photo hero (the section chrome removes padding/max-width) */
 
-.hero {
-  position: relative;
-  padding: 40px 24px;
-  min-height: 300px;
-}
-
-.hero h1 {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  color: var(--background-color);
-}
-
-.hero picture {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  object-fit: cover;
-  box-sizing: border-box;
+.hero picture,
+.hero img {
+  display: block;
+  width: 100%;
 }
 
 .hero img {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
+  height: auto;
 }
 
-@media (width >= 900px) {
-  .hero {
-    padding: 40px 32px;
-  }
+/* cropped banner variant (eBook library) */
+.hero.cover img {
+  height: clamp(220px, 30vw, 420px);
+  object-fit: cover;
 }

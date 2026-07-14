@@ -1,0 +1,46 @@
+/* donor pagination: Forest links, current page Lime chip */
+
+.pagination {
+  margin-top: var(--spacing-2xl);
+}
+
+.pagination ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.pagination .page-link,
+.pagination .page-current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--spacing-sm);
+  border-radius: var(--radius);
+  font-family: var(--body-font-family);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.pagination .page-link {
+  color: var(--color-forest);
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.pagination .page-link:hover {
+  background: var(--color-silver);
+  text-decoration: underline;
+}
+
+.pagination .page-current {
+  background: var(--color-accent);
+  color: var(--color-fg);
+  font-weight: 500;
+}

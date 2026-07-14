@@ -1,20 +1,195 @@
+/* Clover mega footer (captured chrome values) */
+
 footer {
-  background-color: var(--light-color);
-  font-size: var(--body-font-size-xs);
+  background: #fbfbfb;
+  font-family: var(--body-font-family);
 }
 
-footer .footer > div {
-  margin: auto;
-  max-width: 1200px;
-  padding: 40px 24px 24px;
+footer .footer-inner {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 46px;
 }
 
-footer .footer p {
+/* ---- left sidebar: business types + social (clover motif background) ---- */
+footer .footer-side {
+  background-color: #f0f0f0;
+  background-image: url('https://blog.clover.com/wp-content/themes/clovercenter_2.0/assets/images/footerbkgrd.png');
+  background-position: -3px bottom;
+  background-size: 96%;
+  background-repeat: no-repeat;
+  padding: 40px 60px;
+  display: flex;
+  flex-direction: column;
+}
+
+footer .footer-side h2 {
+  font-family: var(--body-font-family);
+  font-size: 20px;
+  font-weight: 500;
+  margin: 28px 0;
+  color: #000;
+}
+
+footer .footer-side-menu {
+  list-style: none;
   margin: 0;
+  padding: 0;
 }
 
-@media (width >= 900px) {
-  footer .footer > div {
-    padding: 40px 32px 24px;
+footer .footer-side-menu li {
+  margin: 28px 0;
+}
+
+footer .footer-side-menu a {
+  color: #000;
+  font-size: 20px;
+  font-weight: 300;
+  text-decoration: none;
+}
+
+footer .footer-side-menu a:hover {
+  text-decoration: underline;
+}
+
+footer .footer-social {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: auto 0 10px;
+  padding: 0;
+}
+
+footer .footer-social li {
+  margin: 0;
+  padding: 8px;
+}
+
+footer .footer-social img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* ---- right: link columns, disclaimer, copyright ---- */
+footer .footer-main {
+  padding: 40px 55px 60px;
+}
+
+footer .footer-columns > div {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 32px;
+}
+
+footer .footer-col-title {
+  font-family: var(--body-font-family);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.55px;
+  margin: 32px 0 16px;
+  color: #000;
+}
+
+footer .footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+footer .footer-col li {
+  margin: 16px 0;
+  line-height: normal;
+}
+
+footer .footer-col a {
+  color: #000;
+  font-size: 14px;
+  font-weight: 300;
+  text-decoration: none;
+}
+
+footer .footer-col a:hover {
+  text-decoration: underline;
+}
+
+footer .footer-disclaimer {
+  margin-top: 60px;
+}
+
+footer .footer-disclaimer p {
+  font-size: 12px;
+  font-weight: 300;
+  margin: 9px 0;
+  line-height: 1.8em;
+  color: #000;
+}
+
+footer .footer-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+footer .footer-copy p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 300;
+  color: #000;
+}
+
+footer .footer-copy a {
+  color: #000;
+}
+
+/* ---- responsive ---- */
+@media (width <= 1199px) {
+  footer .footer-inner {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  footer .footer-side {
+    background-image: url('https://blog.clover.com/wp-content/themes/clovercenter_2.0/assets/images/footerbkgrd-rotate.png');
+    background-position: right bottom;
+    background-size: 65%;
+    padding: 34px 40px;
+  }
+
+  footer .footer-side-menu li {
+    margin: 10px 0;
+  }
+
+  footer .footer-main {
+    padding: 32px 40px 40px;
+  }
+
+  footer .footer-columns > div {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width <= 639px) {
+  footer .footer-columns > div {
+    grid-template-columns: 1fr;
+  }
+
+  footer .footer-main {
+    padding: 24px 24px 40px;
+  }
+
+  footer .footer-side {
+    padding: 36px 24px;
+  }
+
+  footer .footer-copy {
+    justify-content: center;
+    text-align: center;
   }
 }

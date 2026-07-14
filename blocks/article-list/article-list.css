@@ -1,0 +1,6 @@
+/* article-list renders the donor card grammar; layout comes from cards.css
+   (loaded by article-list.js). Only list-specific tweaks live here. */
+
+.article-list:empty {
+  display: none;
+}
