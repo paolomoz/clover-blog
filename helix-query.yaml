@@ -24,7 +24,9 @@ indices:
         select: head > meta[name="category"]
         value: attribute(el, 'content')
       tags:
-        select: head > meta[name="tags"]
+        # 'Tags' metadata is pipeline-special (article:tag properties);
+        # pages emit a plain 'Article Tags' row for indexing
+        select: head > meta[name="article-tags"]
         value: attribute(el, 'content')
       template:
         select: head > meta[name="template"]
