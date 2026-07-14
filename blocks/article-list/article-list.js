@@ -17,12 +17,26 @@ const slug = (s) => (s || '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-
 
 export async function fetchQueryIndex() {
   if (!window.queryIndex) {
+    // page through the index — the corpus is >1000 rows, above the
+    // single-request cap of the .json pipeline
+    const rows = [];
     try {
-      const resp = await fetch('/query-index.json?limit=1000');
-      window.queryIndex = resp.ok ? (await resp.json()).data : [];
+      const pageSize = 500;
+      let offset = 0;
+      for (;;) {
+        // eslint-disable-next-line no-await-in-loop
+        const resp = await fetch(`/query-index.json?offset=${offset}&limit=${pageSize}`);
+        if (!resp.ok) break;
+        // eslint-disable-next-line no-await-in-loop
+        const json = await resp.json();
+        rows.push(...json.data);
+        offset += json.data.length;
+        if (!json.data.length || offset >= json.total || offset > 5000) break;
+      }
     } catch (e) {
-      window.queryIndex = [];
+      // network failure: render with whatever was fetched
     }
+    window.queryIndex = rows;
   }
   return window.queryIndex;
 }
