@@ -4,3 +4,9 @@
 .article-list:empty {
   display: none;
 }
+
+.article-list-more {
+  display: flex;
+  justify-content: center;
+  margin: 32px 0 0;
+}

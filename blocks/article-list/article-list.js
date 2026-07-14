@@ -107,5 +107,27 @@ export default async function decorate(block) {
   });
 
   items.sort((a, b) => (b.publicationDate || '').localeCompare(a.publicationDate || ''));
-  items.slice(0, limit).forEach((item) => block.append(buildIndexCard(item)));
+
+  let shown = 0;
+  const renderMore = () => {
+    items.slice(shown, shown + limit).forEach((item) => block.append(buildIndexCard(item)));
+    shown = Math.min(shown + limit, items.length);
+  };
+  renderMore();
+
+  if (items.length > shown) {
+    const wrap = document.createElement('div');
+    wrap.className = 'article-list-more';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'button primary';
+    btn.textContent = 'Load more';
+    btn.addEventListener('click', () => {
+      renderMore();
+      if (shown >= items.length) wrap.remove();
+      else btn.focus();
+    });
+    wrap.append(btn);
+    block.after(wrap);
+  }
 }
