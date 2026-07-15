@@ -77,8 +77,8 @@ indices:
       # (.sidebar popular-topics/newsletter, .tags chips) are excluded so
       # tag-name queries don't match every page.
       text:
-        select: 'main > div:not(.sidebar):not(.tags)'
+        select: 'main > div:not(:has(.sidebar)):not(:has(.cards))'
         value: words(textContent(el), 0, 500)
       headings:
-        select: 'main > div:not(.sidebar):not(.tags) h2, main > div:not(.sidebar):not(.tags) h3'
+        select: 'main > div.article h2, main > div.article h3'
         values: textContent(el)
