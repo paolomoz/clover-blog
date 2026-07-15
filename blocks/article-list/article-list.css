@@ -10,3 +10,179 @@
   justify-content: center;
   margin: 32px 0 0;
 }
+
+/* ---- lead: home lead band — split lead + numbered ledger ----
+   The featured story is a split lead inside the band: text column left,
+   bottom-anchored against a ghost Formula index numeral, hero image right
+   (hairline frame). The remaining stories form a full-width thin-rule
+   ledger indexed 02/03/…, with the donor's lime active pill on hover.
+   Donor signatures: stat-band Formula numerals ('RUN THE NUMBERS'),
+   sticky-sub-nav lime active pill, hairline image frames, thin-rule rhythm.
+   Refero refs: washingtonpost.com home lead composition (headline column
+   beside the hero photo); 19-86.fr + gustavo.work (oversized numerals over
+   1px-rule list rhythm); wise.com (lime action accent on flat white). */
+
+.article-list.lead {
+  display: block;
+}
+
+.article-list.lead .lead-feature {
+  display: grid;
+  grid-template-columns: 5fr 7fr;
+  column-gap: var(--spacing-xl);
+}
+
+/* flat editorial lead — no card lift */
+.article-list.lead .card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.article-list.lead .lead-feature > picture {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.article-list.lead .lead-feature > picture img {
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-lg);
+}
+
+.article-list.lead .lead-copy {
+  grid-row: 1;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* the donor's statement-numeral voice (stat band), aria-hidden decoration */
+.article-list.lead .lead-index {
+  font-family: formula-black, formula-black-fallback, 'Arial Narrow', sans-serif;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--color-silver);
+  user-select: none;
+}
+
+.article-list.lead .lead-copy .lead-index {
+  font-size: 128px;
+  margin-left: -5px; /* optical left alignment of the '0' */
+}
+
+.article-list.lead .card-body {
+  flex: 0 0 auto;
+  padding: 0;
+  gap: var(--spacing-md);
+}
+
+/* bottom-anchor the story block against the image height — the space
+   between numeral and text is the composition, not a dead column */
+.article-list.lead .lead-copy .card-body {
+  margin-top: auto;
+}
+
+.article-list.lead .lead-feature .card-title {
+  font-size: var(--heading-xl);
+  font-weight: 300;
+  letter-spacing: -1px;
+  line-height: 1.25;
+}
+
+.article-list.lead .lead-feature .excerpt {
+  font-size: var(--body);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- the ledger: full-width thin-rule row of secondary stories ---- */
+.article-list.lead .lead-rail {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-lg) var(--spacing-xl);
+  margin: var(--spacing-xl) 0 0;
+  padding: 0;
+}
+
+.article-list.lead .lead-rail-item {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  column-gap: var(--spacing-md);
+  align-items: start;
+  border-top: 1px solid var(--color-hairline);
+  border-radius: 0;
+  padding-top: var(--spacing-lg);
+}
+
+.article-list.lead .lead-rail .lead-index {
+  font-size: 26px;
+  color: var(--color-charcoal);
+  justify-self: start;
+  padding: 6px 8px 4px;
+  margin: -6px 0 0 -8px; /* pill padding without moving the numeral */
+  border-radius: var(--radius);
+  transition: background-color 0.12s ease-out;
+}
+
+/* donor sub-nav active pill: Lime marks the story under the pointer */
+.article-list.lead .lead-rail-item:hover .lead-index,
+.article-list.lead .lead-rail-item:focus-within .lead-index {
+  background-color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-list.lead .lead-rail .lead-index {
+    transition: none;
+  }
+}
+
+.article-list.lead .lead-rail .card-title {
+  font-size: var(--heading-md);
+}
+
+.article-list.lead .lead-rail .excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- responsive ---- */
+@media (width <= 1024px) {
+  .article-list.lead .lead-feature {
+    grid-template-columns: 1fr;
+    row-gap: var(--spacing-lg);
+  }
+
+  .article-list.lead .lead-feature > picture {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .article-list.lead .lead-copy {
+    grid-column: 1;
+    grid-row: 2;
+    gap: var(--spacing-sm);
+  }
+
+  .article-list.lead .lead-copy .lead-index {
+    font-size: 48px;
+    margin-left: -2px;
+  }
+
+  .article-list.lead .card-body {
+    margin-top: 0;
+  }
+
+  .article-list.lead .lead-rail {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (width <= 640px) {
+  .article-list.lead .lead-feature .card-title {
+    font-size: 26px;
+  }
+}

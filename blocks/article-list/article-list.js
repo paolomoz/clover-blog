@@ -16,6 +16,12 @@
  * - featured: first (newest) card is the large feature, the rest stack beside it
  * - featured-pair: two feature cards side by side
  * - webinars: feature card + story card, CTA text "Watch Now"
+ * - lead: home lead band — split lead (text left, bottom-anchored under a
+ *   Formula index numeral; image right) + full-width thin-rule ledger of the
+ *   remaining stories, indexed 02/03/…, lime-pill hover on the index.
+ *   Donor signatures: stat-band Formula numerals + sub-nav lime active pill.
+ *   Refero: washingtonpost.com lead composition; 19-86.fr / gustavo.work
+ *   numeral + 1px-rule ledger rhythm (see article-list.css).
  *
  * Renders the donor story-card grammar (reuses blocks/cards/cards.css) so
  * listing pages scale without authoring hundreds of static cards.
@@ -148,6 +154,7 @@ export default async function decorate(block) {
   const featured = block.classList.contains('featured');
   const pair = block.classList.contains('featured-pair');
   const webinars = block.classList.contains('webinars');
+  const lead = block.classList.contains('lead');
   const ctaText = webinars ? 'Watch Now' : 'Read more';
 
   const index = await fetchQueryIndex();
@@ -179,6 +186,46 @@ export default async function decorate(block) {
     // featured rows render 120-150px thumbs — don't ship 660px media
     imgWidth: featured && i > 0 ? '320' : '660',
   });
+
+  if (lead) {
+    // split lead + numbered ledger (see file header). DOM:
+    //   article.card.lead-feature > picture + div.lead-copy (index, card-body)
+    //   ol.lead-rail > li.card.lead-rail-item (index, card-body)
+    const number = (n) => String(n).padStart(2, '0');
+    const indexEl = (n) => {
+      const p = document.createElement('p');
+      p.className = 'lead-index';
+      p.setAttribute('aria-hidden', 'true');
+      p.textContent = number(n);
+      return p;
+    };
+    const [first, ...rest] = items.slice(0, limit);
+    if (first) {
+      const feature = buildCard(first, 0);
+      feature.classList.add('lead-feature');
+      const copy = document.createElement('div');
+      copy.className = 'lead-copy';
+      copy.append(indexEl(1), feature.querySelector('.card-body'));
+      feature.append(copy);
+      block.append(feature);
+    }
+    if (rest.length) {
+      const rail = document.createElement('ol');
+      rail.className = 'lead-rail';
+      rest.forEach((item, i) => {
+        const li = document.createElement('li');
+        li.className = 'card lead-rail-item';
+        const built = buildIndexCard(item, { ctaText, kicker: cfg.kicker });
+        // ledger rows are typographic: title link carries the action —
+        // no thumbnail, no per-row CTA
+        built.querySelector('.read-more').remove();
+        li.append(indexEl(i + 2), built.querySelector('.card-body'));
+        rail.append(li);
+      });
+      block.append(rail);
+    }
+    return;
+  }
 
   if (featured || pair || webinars) {
     // donor feature grammar (see blocks/cards/cards.js): newest is the feature
