@@ -103,15 +103,19 @@
 
 .article-list.lead .lead-mark {
   display: inline-flex;
-  margin-top: 2px; /* optical cap-height alignment with the row title */
+  padding: 5px; /* reserved so the hover ground appears without layout shift */
+  margin: -3px 0 0 -5px; /* optical cap-height + left alignment with the row title */
+  border-radius: var(--radius);
+  background: transparent;
   color: var(--color-slate);
-  transition: color 0.12s ease-out;
+  transition: color 0.12s ease-out, background-color 0.12s ease-out;
 }
 
-/* the site's own mark answers the pointer in signature green */
+/* the site's own mark answers the pointer: clover green on a Lime ground */
 .article-list.lead .lead-rail-item:hover .lead-mark,
 .article-list.lead .lead-rail-item:focus-within .lead-mark {
   color: var(--chrome-green, #280);
+  background-color: var(--color-accent); /* Lime #b6fb6f */
 }
 
 @media (prefers-reduced-motion: reduce) {
