@@ -43,8 +43,18 @@
   grid-column: 2;
 }
 
+.article-list.lead .lead-feature > picture {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
 .article-list.lead .lead-feature > picture img {
-  aspect-ratio: 3 / 2;
+  /* 30% flatter than the original 3/2 (h/w 0.667 -> 0.467), centered crop */
+  aspect-ratio: 15 / 7;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  object-position: center;
   border-radius: var(--radius-lg);
 }
 

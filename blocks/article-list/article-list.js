@@ -217,7 +217,11 @@ export default async function decorate(block) {
       rest.forEach((item) => {
         const li = document.createElement('li');
         li.className = 'card lead-rail-item';
-        const built = buildIndexCard(item, { ctaText, kicker: cfg.kicker });
+        // keep the rail layout consistent: uncategorized rows get a
+        // placeholder eyebrow instead of a missing one
+        const railKicker = cfg.kicker
+          || (!item.category || item.category === 'Uncategorized' ? 'Featured' : undefined);
+        const built = buildIndexCard(item, { ctaText, kicker: railKicker });
         // ledger rows are typographic: title link carries the action —
         // no thumbnail, no per-row CTA
         built.querySelector('.read-more').remove();
