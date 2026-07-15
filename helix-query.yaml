@@ -76,9 +76,11 @@ indices:
       # unbounded index row) plus all section headings. Boilerplate sections
       # (.sidebar popular-topics/newsletter, .tags chips) are excluded so
       # tag-name queries don't match every page.
+      # body prose = direct children of the 'article' section (blocks like
+      # .sidebar/.tags/.cards are nested divs and thus excluded)
       text:
-        select: 'main > div:not(:has(.sidebar)):not(:has(.cards))'
+        select: 'main > div.article > p, main > div.article > ul, main > div.article > ol, main > div.article > blockquote, main > div.article > h2, main > div.article > h3, main > div.article > h4'
         value: words(textContent(el), 0, 500)
       headings:
-        select: 'main > div.article h2, main > div.article h3'
+        select: 'main > div.article > h2, main > div.article > h3'
         values: textContent(el)
