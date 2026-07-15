@@ -71,16 +71,16 @@ indices:
       publicationDate:
         select: head > meta[name="publication-date"]
         value: attribute(el, 'content')
-      # full-text recall: first ~500 words of the article body (WP search
-      # matches full post content; this approaches its recall without an
-      # unbounded index row) plus all section headings. Boilerplate sections
-      # (.sidebar popular-topics/newsletter, .tags chips) are excluded so
-      # tag-name queries don't match every page.
-      # body prose = direct children of the 'article' section (blocks like
-      # .sidebar/.tags/.cards are nested divs and thus excluded)
+      # full-text recall: body prose of the article (WP search matches full
+      # post content; median post is ~1100 words, so a 1200-word cap covers
+      # ~91% of full-body matches — measured on the wp-cache corpus).
+      # Body prose = direct children of the 'article' section only; blocks
+      # (.sidebar popular-topics/newsletter, .tags chips, .cards related)
+      # are nested divs and thus excluded, so tag-name queries don't match
+      # every page and related-post titles don't cross-match.
       text:
         select: 'main > div.article > p, main > div.article > ul, main > div.article > ol, main > div.article > blockquote, main > div.article > h2, main > div.article > h3, main > div.article > h4'
-        value: words(textContent(el), 0, 500)
+        value: words(textContent(el), 0, 1200)
       headings:
         select: 'main > div.article > h2, main > div.article > h3'
         values: textContent(el)
