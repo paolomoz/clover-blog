@@ -173,7 +173,10 @@ function prioritizeLcpImage(main) {
 /**
  * Warms the cache for resources the lazy phase will need, so the sequential
  * section/block loading doesn't pay a network round trip per module:
- * - JS module + CSS of every block present on the page
+ * - JS module + CSS of every block present on the page (the CSS goes in as a
+ *   real stylesheet — rel=preload would shadow loadCSS's dedupe-by-href and
+ *   the styles would never apply; blocks sit in still-hidden sections, so
+ *   early scoped CSS has no visual side effects)
  * - the first page of /query-index.json on pages with index-driven blocks
  *   (article-list, and the article rail/related bands)
  * @param {Element} main The decorated main element
@@ -190,7 +193,7 @@ function preloadLazyResources(main) {
     .map((b) => b.dataset.blockName));
   names.forEach((name) => {
     hint('modulepreload', `${window.hlx.codeBasePath}/blocks/${name}/${name}.js`);
-    hint('preload', `${window.hlx.codeBasePath}/blocks/${name}/${name}.css`, 'style');
+    loadCSS(`${window.hlx.codeBasePath}/blocks/${name}/${name}.css`);
   });
   if (names.has('article-list') || names.has('cards') || names.has('sidebar')) {
     hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=0&limit=500`, 'fetch');

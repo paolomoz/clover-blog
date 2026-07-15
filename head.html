@@ -9,10 +9,14 @@
 <link rel="preload" as="fetch" href="/nav.plain.html">
 <link rel="modulepreload" href="/blocks/header/header.js">
 <link rel="modulepreload" href="/blocks/fragment/fragment.js">
-<link rel="preload" as="style" href="/blocks/header/header.css">
 <script nonce="aem" src="/scripts/aem.js" type="module"></script>
 <script nonce="aem" src="/scripts/scripts.js" type="module"></script>
 <link rel="stylesheet" href="/styles/styles.css"/>
+<!-- the header chrome is above the fold on every page: loading its (small)
+     CSS up front guarantees the nav never paints unstyled (the block appends
+     its DOM the moment the preloaded module + fragment resolve, which can
+     beat a lazily-loaded stylesheet and shift the whole page) -->
+<link rel="stylesheet" href="/blocks/header/header.css">
 <script nonce="aem">
   // LCP kickstart: start downloading the page's hero/lead image as soon as
   // the DOM is parsed (readyState 'interactive'), well before the deferred

@@ -142,11 +142,90 @@ function initFallbackConsent() {
   if (!choice) showFallbackBanner(container);
 }
 
-function loadOneTrust() {
-  // OneTrust's banner script calls this global when ready
-  if (typeof window.OptanonWrapper !== 'function') {
-    window.OptanonWrapper = () => {};
+/*
+ * First-party consent persistence.
+ *
+ * The OneTrust config was provisioned for blog.clover.com and writes all its
+ * cookies with `domain=.blog.clover.com`; on any other host (aem.live, page
+ * previews) the browser rejects every write, so no choice ever sticks and
+ * the banner re-prompts on each page load. OneTrust *reads* cookies by name
+ * via document.cookie, so mirroring the choice into localStorage and
+ * re-materializing host-only `OptanonAlertBoxClosed` / `OptanonConsent`
+ * cookies before the SDK boots makes it skip the banner and restore the
+ * preference-center state.
+ */
+const OT_MIRROR_KEY = 'clover-blog-ot-consent';
+
+function readMirror() {
+  try {
+    return JSON.parse(localStorage.getItem(OT_MIRROR_KEY));
+  } catch (e) {
+    return null;
   }
+}
+
+function setHostCookie(name, value) {
+  // host-only (no Domain attribute) so it is valid on every host we serve on
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
+}
+
+function restoreConsentCookies() {
+  const saved = readMirror();
+  if (!saved || !saved.closed) return;
+  setHostCookie('OptanonAlertBoxClosed', saved.closed);
+  if (saved.consent) setHostCookie('OptanonConsent', saved.consent);
+}
+
+function persistConsentMirror() {
+  // active groups look like ",C0001,C0003,"; group ids come from the config
+  const active = (window.OnetrustActiveGroups || '').split(',').filter(Boolean);
+  let ids = [];
+  try {
+    ids = window.OneTrust.GetDomainData().Groups.map((g) => g.OptanonGroupId.trim());
+  } catch (e) {
+    ids = active;
+  }
+  const closed = new Date().toISOString();
+  const groups = ids.map((id) => `${id}:${active.includes(id) ? 1 : 0}`).join(',');
+  const consent = `groups=${groups}&datestamp=${new Date().toString()}`;
+  try {
+    localStorage.setItem(OT_MIRROR_KEY, JSON.stringify({ closed, consent }));
+  } catch (e) {
+    // storage unavailable: cookies below still cover this browsing session
+  }
+  // OneTrust's own writes were domain-rejected — set the host-only versions
+  setHostCookie('OptanonAlertBoxClosed', closed);
+  setHostCookie('OptanonConsent', consent);
+}
+
+/**
+ * Keeps the injected OneTrust UI out of the layout and paint metrics:
+ * the SDK container must never sit in document flow (its stylesheet arrives
+ * a beat after its DOM, which would push the whole page down), and the
+ * banner copy stays compact like the donor's.
+ */
+function shieldOneTrustUi() {
+  const style = document.createElement('style');
+  style.textContent = `
+    #onetrust-consent-sdk { position: fixed; z-index: 2147483645; }
+    #onetrust-banner-sdk #onetrust-policy-text { font-size: 12px; line-height: 1.5; }
+  `;
+  document.head.append(style);
+}
+
+function loadOneTrust() {
+  shieldOneTrustUi();
+  restoreConsentCookies();
+  // OneTrust's banner script calls this global when ready
+  window.OptanonWrapper = () => {
+    try {
+      if (window.OneTrust && window.OneTrust.OnConsentChanged) {
+        window.OneTrust.OnConsentChanged(persistConsentMirror);
+      }
+    } catch (e) {
+      // OT api surface changed: worst case the banner re-prompts
+    }
+  };
   const stub = document.createElement('script');
   stub.src = OT_STUB_SRC;
   stub.charset = 'UTF-8';
