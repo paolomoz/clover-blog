@@ -214,7 +214,7 @@ export default async function decorate(block) {
     if (rest.length) {
       const rail = document.createElement('ol');
       rail.className = 'lead-rail';
-      rest.forEach((item, i) => {
+      rest.forEach((item) => {
         const li = document.createElement('li');
         li.className = 'card lead-rail-item';
         const built = buildIndexCard(item, { ctaText, kicker: cfg.kicker });
