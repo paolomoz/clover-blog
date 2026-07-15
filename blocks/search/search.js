@@ -198,6 +198,7 @@ export default async function decorate(block) {
 
   const chips = document.createElement('div');
   chips.className = 'search-chips';
+  chips.setAttribute('role', 'group');
   chips.setAttribute('aria-label', 'Active filters');
 
   const results = document.createElement('div');

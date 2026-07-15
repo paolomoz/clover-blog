@@ -118,7 +118,12 @@ export function buildIndexCard(item, opts = {}) {
     body.append(p);
   }
 
-  const h3 = document.createElement('h3');
+  // heading level is contextual: on listing-template pages the cards sit
+  // directly under the page h1 (no h2 section head), so h2 keeps the
+  // outline sequential; everywhere else cards follow an h2 section head.
+  const isListing = document.body.classList.contains('listing')
+    || document.body.classList.contains('listing-archive');
+  const h3 = document.createElement(isListing ? 'h2' : 'h3');
   h3.className = 'card-title';
   const link = document.createElement('a');
   link.className = 'title-link';
