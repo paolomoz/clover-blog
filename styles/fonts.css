@@ -39,3 +39,20 @@
    secondary weights were starving the LCP image. Until they land, the
    metric-matched fallbacks in styles.css render (visually near-identical
    widths, so the swap doesn't reflow). */
+
+@font-face {
+  font-family: formula-black;
+  src: url('../fonts/formula-condensed-black.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* metric-matched fallback for the condensed black display face:
+   Arial Narrow local, size-adjusted so H1/H2 line boxes hold during swap */
+@font-face {
+  font-family: formula-black-fallback;
+  src: local('Arial Narrow'), local('Arial');
+  size-adjust: 86%;
+  font-weight: 900;
+}
