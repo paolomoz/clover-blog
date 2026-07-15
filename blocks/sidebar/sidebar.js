@@ -63,6 +63,11 @@ function buildTeaser(item, title) {
 
 async function decorateDynamicRail(block) {
   if (meta('template') !== 'article') return;
+  // the rail is below the fold on mobile — let the LCP image and fonts land
+  // before spending bandwidth on the query index
+  if (document.readyState !== 'complete') {
+    await new Promise((resolve) => { window.addEventListener('load', resolve, { once: true }); });
+  }
   const {
     fetchQueryIndex, byNewest, stripSuffix, dedupeByTitle,
   } = await import('../article-list/article-list.js');

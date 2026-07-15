@@ -25,29 +25,36 @@ import { readBlockConfig, createOptimizedPicture, loadCSS } from '../../scripts/
 const slug = (s) => (s || '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 export async function fetchQueryIndex() {
-  if (!window.queryIndex) {
-    // page through the index — the corpus is >1000 rows, above the
-    // single-request cap of the .json pipeline
-    const rows = [];
-    try {
-      const pageSize = 500;
-      let offset = 0;
-      for (;;) {
-        // eslint-disable-next-line no-await-in-loop
-        const resp = await fetch(`/query-index.json?offset=${offset}&limit=${pageSize}`);
-        if (!resp.ok) break;
-        // eslint-disable-next-line no-await-in-loop
-        const json = await resp.json();
-        rows.push(...json.data);
-        offset += json.data.length;
-        if (!json.data.length || offset >= json.total || offset > 5000) break;
+  // memoize the in-flight promise so concurrent callers (article rail +
+  // related-posts band) share one fetch instead of paging the index twice
+  if (!window.queryIndexPromise) {
+    window.queryIndexPromise = (async () => {
+      // page through the index — the corpus is >1000 rows, above the
+      // single-request cap of the .json pipeline
+      const rows = [];
+      try {
+        const pageSize = 500;
+        const first = await fetch(`/query-index.json?offset=0&limit=${pageSize}`);
+        if (first.ok) {
+          const json = await first.json();
+          rows.push(...json.data);
+          const total = Math.min(json.total || 0, 5000);
+          // fetch the remaining pages in parallel — one round trip, not N
+          const pages = [];
+          for (let offset = rows.length; offset < total && rows.length; offset += pageSize) {
+            pages.push(fetch(`/query-index.json?offset=${offset}&limit=${pageSize}`)
+              .then((r) => (r.ok ? r.json() : { data: [] }))
+              .catch(() => ({ data: [] })));
+          }
+          (await Promise.all(pages)).forEach((p) => rows.push(...p.data));
+        }
+      } catch (e) {
+        // network failure: render with whatever was fetched
       }
-    } catch (e) {
-      // network failure: render with whatever was fetched
-    }
-    window.queryIndex = rows;
+      return rows;
+    })();
   }
-  return window.queryIndex;
+  return window.queryIndexPromise;
 }
 
 /** page titles carry a site suffix the donor cards never showed */
@@ -80,13 +87,16 @@ export function dedupeByTitle(items) {
 }
 
 export function buildIndexCard(item, opts = {}) {
-  const { excerpt = true, ctaText = 'Read more', kicker } = opts;
+  const {
+    excerpt = true, ctaText = 'Read more', kicker, eager = false,
+  } = opts;
   const title = stripSuffix(item.title) || item.path;
   const card = document.createElement('article');
   card.className = 'card';
 
   if (item.image && !item.image.startsWith('/default-meta-image')) {
-    const picture = createOptimizedPicture(item.image, title, false, [{ width: '660' }]);
+    const picture = createOptimizedPicture(item.image, title, eager, [{ width: '660' }]);
+    if (eager) picture.querySelector('img').fetchPriority = 'high';
     card.append(picture);
   }
 
@@ -159,11 +169,16 @@ export default async function decorate(block) {
   items.sort(byNewest);
   if (offset) items.splice(0, offset);
 
-  const buildCard = (item) => buildIndexCard(item, { ctaText, kicker: cfg.kicker });
+  // in the first listing on the page, the first (feature) card image is the
+  // likely LCP element — load it eagerly at top priority
+  const firstList = block === document.querySelector('main .article-list.block');
+  const buildCard = (item, i = -1) => buildIndexCard(item, {
+    ctaText, kicker: cfg.kicker, eager: firstList && i === 0,
+  });
 
   if (featured || pair || webinars) {
     // donor feature grammar (see blocks/cards/cards.js): newest is the feature
-    const cards = items.slice(0, limit).map(buildCard);
+    const cards = items.slice(0, limit).map((item, i) => buildCard(item, i));
     const [feature, ...rest] = cards;
     if (feature) feature.classList.add('card-feature');
     if (featured) {
@@ -183,7 +198,8 @@ export default async function decorate(block) {
 
   let shown = 0;
   const renderMore = () => {
-    items.slice(shown, shown + limit).forEach((item) => block.append(buildCard(item)));
+    items.slice(shown, shown + limit)
+      .forEach((item, i) => block.append(buildCard(item, shown + i)));
     shown = Math.min(shown + limit, items.length);
   };
   renderMore();

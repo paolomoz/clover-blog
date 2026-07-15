@@ -1,13 +1,17 @@
 /*
- * Clover brand faces, loaded from Clover's own CDNs (not redistributed here).
- * Altform (display) + Graphik Cy-Gr (body) — donor design system faces.
+ * Clover brand faces, self-hosted for performance (same-origin, preloadable,
+ * immutable-cached by the EDS pipeline). Altform (display) + Graphik Cy-Gr
+ * (body) -- donor design system faces, originally served from cloverstatic.
  * LICENSING: proprietary faces licensed to Clover; this site is Clover's own
- * property. Do not copy these URLs to non-Clover properties.
+ * property. Do not copy these files to non-Clover properties.
+ *
+ * The two critical faces (Altform Light for headings, Graphik Regular for
+ * body) are preloaded from head.html -- keep the file names in sync.
  */
 
 @font-face {
   font-family: altform;
-  src: url('https://cloverstatic.com/content/fonts/altform/Altform-Light.woff2') format('woff2');
+  src: url('../fonts/altform-light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -15,7 +19,7 @@
 
 @font-face {
   font-family: altform;
-  src: url('https://cloverstatic.com/content/fonts/altform/Altform-Regular.woff2') format('woff2');
+  src: url('../fonts/altform-regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -23,7 +27,7 @@
 
 @font-face {
   font-family: altform;
-  src: url('https://cloverstatic.com/content/fonts/altform/Altform-SemiBold.woff2') format('woff2');
+  src: url('../fonts/altform-semibold.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -31,7 +35,7 @@
 
 @font-face {
   font-family: graphik;
-  src: url('https://cloverstatic.com/content/fonts/graphik/Graphik-Light-Cy-Gr-Web.woff2') format('woff2');
+  src: url('../fonts/graphik-light-cy-gr-web.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -39,7 +43,7 @@
 
 @font-face {
   font-family: graphik;
-  src: url('https://cloverstatic.com/content/fonts/graphik/Graphik-Regular-Cy-Gr-Web.woff2') format('woff2');
+  src: url('../fonts/graphik-regular-cy-gr-web.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -47,7 +51,7 @@
 
 @font-face {
   font-family: graphik;
-  src: url('https://cloverstatic.com/content/fonts/graphik/Graphik-Medium-Cy-Gr-Web.woff2') format('woff2');
+  src: url('../fonts/graphik-medium-cy-gr-web.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -55,7 +59,7 @@
 
 @font-face {
   font-family: graphik;
-  src: url('https://blog.clover.com/wp-content/themes/clovercenter_2.0/assets/fonts/Graphik-Bold.woff2') format('woff2');
+  src: url('../fonts/graphik-bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;

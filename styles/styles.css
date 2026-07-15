@@ -7,6 +7,29 @@
  * They are not redistributed in this repo. See styles/fonts.css.
  */
 
+/*
+ * Metric-compatible fallbacks for the brand faces (measured against the
+ * woff2 metrics + canvas width ratio vs Arial) so the swap from the system
+ * fallback to Altform/Graphik doesn't reflow (font CLS).
+ */
+@font-face {
+  font-family: altform-fallback;
+  src: local('Arial');
+  size-adjust: 99.13%;
+  ascent-override: 96.84%;
+  descent-override: 25.22%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: graphik-fallback;
+  src: local('Arial');
+  size-adjust: 107.97%;
+  ascent-override: 90.86%;
+  descent-override: 18.06%;
+  line-gap-override: 0%;
+}
+
 :root {
   /* donor palette */
   --color-bg: #fff; /* Paper */
@@ -27,8 +50,8 @@
   --chrome-hairline: #e5e5e5;
 
   /* type */
-  --heading-font-family: altform, -apple-system, blinkmacsystemfont, 'Segoe UI', 'Helvetica Neue', arial, sans-serif;
-  --body-font-family: graphik, -apple-system, blinkmacsystemfont, 'Segoe UI', 'Helvetica Neue', arial, sans-serif;
+  --heading-font-family: altform, altform-fallback, -apple-system, blinkmacsystemfont, 'Segoe UI', 'Helvetica Neue', arial, sans-serif;
+  --body-font-family: graphik, graphik-fallback, -apple-system, blinkmacsystemfont, 'Segoe UI', 'Helvetica Neue', arial, sans-serif;
   --heading-xxl: 56px;
   --heading-xl: 32px;
   --heading-lg: 24px;

@@ -156,26 +156,64 @@ export function decorateMain(main) {
 }
 
 /**
+ * Ensures the LCP candidate image downloads at top priority. The head.html
+ * inline script already flips the first sizeable content image; this is the
+ * safety net for pictures created during decoration.
+ * @param {Element} main The main element
+ */
+function prioritizeLcpImage(main) {
+  const img = [...main.querySelectorAll('picture > img')]
+    .find((i) => (Number.parseInt(i.getAttribute('width'), 10) || 0) >= 400);
+  if (img) {
+    img.loading = 'eager';
+    img.fetchPriority = 'high';
+  }
+}
+
+/**
+ * Warms the cache for resources the lazy phase will need, so the sequential
+ * section/block loading doesn't pay a network round trip per module:
+ * - JS module + CSS of every block present on the page
+ * - the first page of /query-index.json on pages with index-driven blocks
+ *   (article-list, and the article rail/related bands)
+ * @param {Element} main The decorated main element
+ */
+function preloadLazyResources(main) {
+  const hint = (rel, href, as) => {
+    const link = document.createElement('link');
+    link.rel = rel;
+    link.href = href;
+    if (as) link.as = as;
+    document.head.append(link);
+  };
+  const names = new Set([...main.querySelectorAll('div.block[data-block-name]')]
+    .map((b) => b.dataset.blockName));
+  names.forEach((name) => {
+    hint('modulepreload', `${window.hlx.codeBasePath}/blocks/${name}/${name}.js`);
+    hint('preload', `${window.hlx.codeBasePath}/blocks/${name}/${name}.css`, 'style');
+  });
+  if (names.has('article-list') || names.has('cards') || names.has('sidebar')) {
+    hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=0&limit=500`, 'fetch');
+  }
+}
+
+/**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   decorateTemplateAndTheme();
+  /* brand faces are self-hosted + preloaded with metric-matched fallbacks,
+     so they are safe (no CLS, no extra origin) to load before first paint */
+  loadFonts();
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
+    prioritizeLcpImage(main);
+    preloadLazyResources(main);
     document.body.classList.add('appear');
     await loadSection(main.querySelector('.section'), waitForFirstImage);
-  }
-
-  try {
-    /* if desktop (proxy for fast connection) or fonts already loaded, load fonts.css */
-    if (window.innerWidth >= 900 || sessionStorage.getItem('fonts-loaded')) {
-      loadFonts();
-    }
-  } catch (e) {
-    // do nothing
   }
 }
 
@@ -196,7 +234,6 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
-  loadFonts();
 }
 
 /**

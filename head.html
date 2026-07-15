@@ -4,6 +4,29 @@
   move-to-http-header="true"
 />
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/altform-light.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/graphik-regular-cy-gr-web.woff2" crossorigin>
+<link rel="preload" as="fetch" href="/nav.plain.html">
+<link rel="modulepreload" href="/blocks/header/header.js">
+<link rel="modulepreload" href="/blocks/fragment/fragment.js">
+<link rel="preload" as="style" href="/blocks/header/header.css">
 <script nonce="aem" src="/scripts/aem.js" type="module"></script>
 <script nonce="aem" src="/scripts/scripts.js" type="module"></script>
 <link rel="stylesheet" href="/styles/styles.css"/>
+<script nonce="aem">
+  // LCP kickstart: start downloading the page's hero/lead image as soon as
+  // the DOM is parsed (readyState 'interactive'), well before the deferred
+  // module pipeline decorates the page. The server-rendered markup ships
+  // every content image as loading="lazy"; lazy images inside the
+  // still-hidden body never start fetching, so on 4G the LCP request would
+  // otherwise wait ~1.5s+ for scripts.js. Picks the first content image with
+  // a real intrinsic width (skips icons/avatars).
+  document.addEventListener('readystatechange', () => {
+    const img = [...document.querySelectorAll('main picture > img[loading="lazy"]')]
+      .find((i) => (parseInt(i.getAttribute('width'), 10) || 0) >= 400);
+    if (img) {
+      img.loading = 'eager';
+      img.fetchPriority = 'high';
+    }
+  }, { once: true });
+</script>
