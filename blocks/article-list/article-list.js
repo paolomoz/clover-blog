@@ -93,7 +93,8 @@ export function buildIndexCard(item, opts = {}) {
   const body = document.createElement('div');
   body.className = 'card-body';
 
-  const kickerText = kicker || item.category;
+  // the donor never surfaced WP's "Uncategorized" bucket as a kicker
+  const kickerText = kicker || (item.category === 'Uncategorized' ? '' : item.category);
   if (kickerText) {
     const p = document.createElement('p');
     p.className = 'kicker';
