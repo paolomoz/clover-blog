@@ -46,24 +46,26 @@ function popularTopics(index, tagPages, count) {
     .map(([label]) => ({ label, path: tagPages.get(label) }));
 }
 
-function buildTeaser(item) {
+function buildTeaser(item, title) {
   const li = document.createElement('li');
   li.className = 'rail-teaser';
   if (item.image && !item.image.startsWith('/default-meta-image')) {
-    li.append(createOptimizedPicture(item.image, item.title || '', false, [{ width: '128' }]));
+    li.append(createOptimizedPicture(item.image, title, false, [{ width: '128' }]));
   } else {
     li.classList.add('no-thumb');
   }
   const a = document.createElement('a');
   a.href = item.path;
-  a.textContent = item.title || item.path;
+  a.textContent = title;
   li.append(a);
   return li;
 }
 
 async function decorateDynamicRail(block) {
   if (meta('template') !== 'article') return;
-  const { fetchQueryIndex, byNewest } = await import('../article-list/article-list.js');
+  const {
+    fetchQueryIndex, byNewest, stripSuffix, dedupeByTitle,
+  } = await import('../article-list/article-list.js');
   const index = await fetchQueryIndex();
   if (!index || !index.length) return;
 
@@ -90,14 +92,14 @@ async function decorateDynamicRail(block) {
     const here = window.location.pathname;
     const tag = meta('article-tags').split(',').map((t) => t.trim()).filter(Boolean)[0];
     const label = tag || meta('category');
-    const pool = index.filter((i) => i.template === 'article' && i.path !== here
+    const pool = dedupeByTitle(index).filter((i) => i.template === 'article' && i.path !== here
       && (tag ? (i.tags || '').includes(tag) : i.category === label));
     pool.sort(byNewest);
     const picks = pool.slice(0, 3);
     if (label && picks.length) {
       const heading = teasers.closest('.rail-card')?.querySelector('.rail-title');
       if (heading) heading.textContent = `More posts about ${label}`;
-      teasers.replaceChildren(...picks.map(buildTeaser));
+      teasers.replaceChildren(...picks.map((i) => buildTeaser(i, stripSuffix(i.title) || i.path)));
     }
   }
 }

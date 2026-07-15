@@ -51,7 +51,9 @@ function listifyDashes(p) {
 async function buildRelated(block) {
   const meta = (n) => document.head.querySelector(`meta[name="${n}"]`)?.content || '';
   if (meta('template') !== 'article') return false;
-  const { fetchQueryIndex, buildIndexCard, byNewest } = await import('../article-list/article-list.js');
+  const {
+    fetchQueryIndex, buildIndexCard, byNewest, dedupeByTitle,
+  } = await import('../article-list/article-list.js');
   const index = await fetchQueryIndex();
   if (!index || !index.length) return false;
 
@@ -59,7 +61,7 @@ async function buildRelated(block) {
   const category = meta('category');
   const tags = meta('article-tags').split(',').map((t) => t.trim()).filter(Boolean);
 
-  let pool = index.filter((i) => i.template === 'article' && i.path !== here);
+  let pool = dedupeByTitle(index).filter((i) => i.template === 'article' && i.path !== here);
   if (category) {
     const sameCategory = pool.filter((i) => i.category === category);
     if (sameCategory.length >= 3) pool = sameCategory;
