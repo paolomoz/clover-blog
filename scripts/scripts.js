@@ -264,7 +264,12 @@ async function loadLazy(doc) {
 
   loadFooter(doc.querySelector('footer'));
 
-  loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`)
+    // calm scroll reveals (register: editorial) ride behind the lazy CSS so
+    // the motion gate class never lands before its rules are applied
+    .then(() => import('./motion.js'))
+    .then(({ default: initMotion }) => initMotion())
+    .catch(() => { /* motion is optional — the page is fully usable without it */ });
 }
 
 /**

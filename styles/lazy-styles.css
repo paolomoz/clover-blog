@@ -1,1 +1,52 @@
 /* add global styles that can be loaded post LCP here */
+
+/* ---------------------------------------------------------------------------
+   cinematic scroll reveals (stardust --cinematic, register: editorial)
+
+   Hidden initial states exist ONLY under html.motion-ok, which
+   scripts/motion.js adds at runtime in the lazy phase — and never under
+   prefers-reduced-motion: reduce. No JS / failed JS / reduced motion means
+   this whole layer is inert and the page is a fully visible static page.
+   transform/opacity only — zero CLS.
+--------------------------------------------------------------------------- */
+
+html.motion-ok [data-mo] {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+html.motion-ok [data-mo].mo-in {
+  opacity: 1;
+
+  /* none (not 0) so sticky/fixed descendants behave after the reveal */
+  transform: none;
+  transition:
+    opacity 700ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 700ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-delay: var(--mo-delay, 0s);
+}
+
+/* hero photo settle: 1.03 -> 1 once, right after load */
+html.motion-ok .hero picture {
+  overflow: hidden;
+}
+
+html.motion-ok .hero img.mo-hero {
+  transform: scale(1.03);
+}
+
+html.motion-ok .hero img.mo-hero-settle {
+  transform: scale(1);
+  transition: transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* belt and braces: motion.js never adds the gate under reduced motion, but
+   if the preference flips mid-session the layer must go inert instantly */
+@media (prefers-reduced-motion: reduce) {
+  html.motion-ok [data-mo],
+  html.motion-ok .hero img {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
