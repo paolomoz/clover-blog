@@ -113,9 +113,6 @@ function buildCard(row, ctaText, text = false) {
       } else if (el.tagName === 'P' && el.querySelector('a.button')) {
         el.classList.add('card-cta');
         body.append(el);
-      } else if (text && el.tagName === 'P' && !el.querySelector('a') && listifyDashes(el)) {
-        body.append(listifyDashes(el));
-        el.remove();
       } else if (el.tagName === 'P' && el.querySelector(':scope > em') && el.textContent.trim() === el.querySelector('em').textContent.trim()) {
         el.classList.add('card-note');
         body.append(el);
