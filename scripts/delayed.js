@@ -12,6 +12,13 @@
  * informational — no scripts are gated on the choice.
  */
 
+// secondary font weights (see styles/fonts.css): fetched here so their
+// top-priority requests never race the LCP image
+const deferredFonts = document.createElement('link');
+deferredFonts.rel = 'stylesheet';
+deferredFonts.href = `${window.hlx.codeBasePath}/styles/fonts-deferred.css`;
+document.head.append(deferredFonts);
+
 const OT_STUB_SRC = 'https://cdn.cookielaw.org/scripttemplates/otSDKStub.js';
 const OT_DOMAIN_SCRIPT = '019c98ab-9ac2-7f05-932d-9b6f249a33be';
 const CONSENT_KEY = 'clover-blog-consent';
@@ -165,8 +172,9 @@ function readMirror() {
 }
 
 function setHostCookie(name, value) {
-  // host-only (no Domain attribute) so it is valid on every host we serve on
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
+  // host-only (no Domain attribute) so it is valid on every host we serve
+  // on; values arrive pre-encoded in OneTrust's own cookie grammar
+  document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
 function restoreConsentCookies() {
@@ -187,7 +195,9 @@ function persistConsentMirror() {
   }
   const closed = new Date().toISOString();
   const groups = ids.map((id) => `${id}:${active.includes(id) ? 1 : 0}`).join(',');
-  const consent = `groups=${groups}&datestamp=${new Date().toString()}`;
+  // mirror OneTrust's own cookie grammar: params joined with raw &/=, each
+  // value URI-encoded (the SDK decodes per-param when it parses `groups`)
+  const consent = `groups=${encodeURIComponent(groups)}&datestamp=${encodeURIComponent(new Date().toString())}`;
   try {
     localStorage.setItem(OT_MIRROR_KEY, JSON.stringify({ closed, consent }));
   } catch (e) {
@@ -238,4 +248,26 @@ function loadOneTrust() {
   }, 10000);
 }
 
-loadOneTrust();
+/*
+ * The banner is a full-screen modal with a dimming overlay. Slamming it over
+ * the article at a fixed 3s (often mid-read, before the user has done
+ * anything) is hostile; nothing on this site is gated on consent (no
+ * martech), so prompting at the first sign of engagement — or shortly after
+ * for passive sessions — loses nothing. It also keeps the overlay out of the
+ * initial paint sequence.
+ */
+function onFirstEngagement(callback, fallbackMs) {
+  let done = false;
+  const fire = () => {
+    if (done) return;
+    done = true;
+    ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach((t) => window.removeEventListener(t, fire));
+    callback();
+  };
+  ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach((t) => {
+    window.addEventListener(t, fire, { once: true, passive: true });
+  });
+  setTimeout(fire, fallbackMs);
+}
+
+onFirstEngagement(loadOneTrust, 10000);

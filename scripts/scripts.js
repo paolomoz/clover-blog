@@ -198,6 +198,15 @@ function preloadLazyResources(main) {
   if (names.has('article-list') || names.has('cards') || names.has('sidebar')) {
     hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=0&limit=500`, 'fetch');
   }
+  // when a listing band sits at the top of the page (home, tag/category
+  // pages) its first card image is the LCP — start the full paged index
+  // fetch now instead of when the block decorates
+  const aboveFold = [...main.querySelectorAll(':scope > .section')].slice(0, 2);
+  if (aboveFold.some((s) => s.querySelector('.article-list.block'))) {
+    import('../blocks/article-list/article-list.js')
+      .then((mod) => mod.fetchQueryIndex())
+      .catch(() => {});
+  }
 }
 
 /**
