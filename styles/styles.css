@@ -33,7 +33,9 @@
 :root {
   /* donor palette */
   --color-bg: #fff; /* Paper */
-  --color-fg: #000; /* Ink */
+  --color-fg: #000; /* Ink — reserved: nav links, on-Lime button text */
+  --color-charcoal: #333; /* donor heading text (h1–h4 on light grounds) */
+  --color-graphite: #4b4b4b; /* donor body prose */
   --color-accent: #b6fb6f; /* Lime — the donor action color */
   --color-accent-hover: #a5ef5a;
   --color-forest: #040;
@@ -89,7 +91,7 @@ body {
   font-family: var(--body-font-family);
   font-size: var(--body);
   line-height: var(--line-height-body);
-  color: var(--color-fg);
+  color: var(--color-graphite);
   background: var(--color-bg);
 }
 
@@ -121,6 +123,7 @@ main h1,
 main h2,
 main h3,
 main h4 {
+  color: var(--color-charcoal);
   font-family: var(--heading-font-family);
   line-height: var(--line-height-heading);
   margin: 0;
@@ -134,7 +137,7 @@ main h1 {
   letter-spacing: normal;
   line-height: 1.05;
   text-transform: uppercase;
-  color: var(--color-fg);
+  color: var(--color-charcoal);
 }
 
 main h2 {
