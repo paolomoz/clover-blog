@@ -165,6 +165,83 @@
   max-width: 66%;
 }
 
+/* index-driven related posts: three cards, full band width */
+.cards.related.dynamic {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: none;
+}
+
+/* ---- text: no-image session cards ----
+   Forest ground + Lime eyebrow/accents, typographic rhythm instead of photos.
+   Refero refs: mode.com "Deep Forest Data Lab" (lime-on-forest blocks, 16px
+   radii, flat) + artindumbo.com "Gallery Guidebook" (text-led event blocks
+   with thin-rule list rhythm). */
+.cards.text {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.cards.text .card {
+  background: var(--color-forest);
+  color: #fff;
+}
+
+.cards.text .card:hover {
+  transform: none; /* flat dark blocks: motion belongs to the photo cards */
+  box-shadow: none;
+}
+
+.cards.text .card-body {
+  padding: 32px;
+  gap: var(--spacing-md);
+}
+
+.cards.text .kicker {
+  color: var(--color-accent);
+}
+
+.cards.text .card-title {
+  color: #fff;
+  font-size: var(--heading-xl);
+  font-weight: 300;
+  line-height: 1.25;
+}
+
+.cards.text .excerpt {
+  color: #fff;
+  font-weight: 300;
+}
+
+.cards.text .card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cards.text .card-list li {
+  position: relative;
+  padding: 7px 0 7px 22px;
+  font-size: var(--body-sm);
+  font-weight: 300;
+  line-height: 1.5;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+
+.cards.text .card-list li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent);
+}
+
+.cards.text .card-list ~ .excerpt {
+  font-size: var(--body-sm);
+  color: rgb(255 255 255 / 85%);
+}
+
+.cards.text .card-cta .button:focus-visible {
+  outline-color: var(--color-accent);
+}
+
 /* ---- webinars (feature + card, natural image ratios) ---- */
 .cards.webinars {
   grid-template-columns: 3fr 2fr;
@@ -213,6 +290,10 @@
     max-width: none;
   }
 
+  .cards.related.dynamic {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .cards.featured .card-row {
     flex: none;
   }
@@ -220,7 +301,8 @@
 
 @media (width <= 640px) {
   .cards,
-  .cards.related {
+  .cards.related,
+  .cards.related.dynamic {
     grid-template-columns: 1fr;
   }
 
