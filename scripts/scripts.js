@@ -195,24 +195,36 @@ function preloadLazyResources(main) {
     hint('modulepreload', `${window.hlx.codeBasePath}/blocks/${name}/${name}.js`);
     loadCSS(`${window.hlx.codeBasePath}/blocks/${name}/${name}.css`);
   });
-  if (names.has('article-list') || names.has('cards') || names.has('sidebar')) {
-    hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=0&limit=500`, 'fetch');
-  }
   // when a listing band sits at the top of the page (home, tag/category
-  // pages) its first card image is the LCP — the band renders only once the
-  // whole index has arrived, so put every page in flight now (the fetch in
-  // article-list opens with the same three offsets) and start the fetch
-  // early instead of when the block decorates
+  // pages) its first card image is the LCP and the band renders only once
+  // the whole index has arrived — start the paged fetch right now, without
+  // waiting for the block module (article-list's fetchQueryIndex reuses
+  // window.queryIndexPromise, so this is the same single fetch)
   const aboveFold = [...main.querySelectorAll(':scope > .section')]
     .filter((s) => s.textContent.trim())
     .slice(0, 2);
-  if (aboveFold.some((s) => s.querySelector('.article-list.block'))) {
-    [500, 1000].forEach((offset) => {
-      hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=${offset}&limit=500`, 'fetch');
+  const listingOnTop = aboveFold.some((s) => s.querySelector('.article-list.block'));
+  if (!listingOnTop && (names.has('article-list') || names.has('cards') || names.has('sidebar'))) {
+    // below-fold consumers (related band, rail) just get the first page warmed
+    hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=0&limit=500`, 'fetch');
+  }
+  if (listingOnTop && !window.queryIndexPromise) {
+    const pageSize = 500;
+    const getPage = (offset) => fetch(`${window.hlx.codeBasePath}/query-index.json?offset=${offset}&limit=${pageSize}`)
+      .then((r) => (r.ok ? r.json() : { data: [], total: 0 }))
+      .catch(() => ({ data: [], total: 0 }));
+    window.queryIndexPromise = Promise.all([0, 500, 1000].map(getPage)).then(async (pages) => {
+      const rows = pages.flatMap((p) => p.data);
+      const total = Math.min(pages[0].total || 0, 5000);
+      if (rows.length === 3 * pageSize && total > rows.length) {
+        const more = [];
+        for (let offset = rows.length; offset < total; offset += pageSize) {
+          more.push(getPage(offset));
+        }
+        (await Promise.all(more)).forEach((p) => rows.push(...p.data));
+      }
+      return rows;
     });
-    import('../blocks/article-list/article-list.js')
-      .then((mod) => mod.fetchQueryIndex())
-      .catch(() => {});
   }
 }
 
