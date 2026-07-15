@@ -308,6 +308,12 @@
 
 /* ---------- progressive loading ---------- */
 
+/* author display values would beat the hidden attribute's UA style */
+.search .search-loading[hidden],
+.search .search-back-top[hidden] {
+  display: none;
+}
+
 .search .search-sentinel {
   height: 1px;
 }
