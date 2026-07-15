@@ -37,3 +37,46 @@ indices:
       lastModified:
         select: none
         value: parseTimestamp(headers['last-modified'], 'ddd, DD MMM YYYY hh:mm:ss GMT')
+
+  # dedicated search index: same corpus, plus body text for full-text recall
+  # (kept separate so the lean /query-index.json used by listings stays small)
+  search:
+    include:
+      - '/**'
+    exclude:
+      - '/nav'
+      - '/footer'
+      - '/search'
+      - '/drafts/**'
+    target: /search-index.json
+    properties:
+      title:
+        select: head > meta[property="og:title"]
+        value: attribute(el, 'content')
+      description:
+        select: head > meta[name="description"]
+        value: attribute(el, 'content')
+      image:
+        select: head > meta[property="og:image"]
+        value: match(attribute(el, 'content'), 'https:\/\/[^/]+(/.*)')
+      category:
+        select: head > meta[name="category"]
+        value: attribute(el, 'content')
+      tags:
+        select: head > meta[name="article-tags"]
+        value: attribute(el, 'content')
+      template:
+        select: head > meta[name="template"]
+        value: attribute(el, 'content')
+      publicationDate:
+        select: head > meta[name="publication-date"]
+        value: attribute(el, 'content')
+      # full-text recall: first ~500 words of the article body (WP search
+      # matches full post content; this approaches its recall without an
+      # unbounded index row) plus all section headings
+      text:
+        select: main
+        value: words(textContent(el), 0, 500)
+      headings:
+        select: main h2, main h3
+        values: textContent(el)
