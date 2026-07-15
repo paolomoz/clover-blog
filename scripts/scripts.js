@@ -199,10 +199,15 @@ function preloadLazyResources(main) {
     hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=0&limit=500`, 'fetch');
   }
   // when a listing band sits at the top of the page (home, tag/category
-  // pages) its first card image is the LCP — start the full paged index
-  // fetch now instead of when the block decorates
+  // pages) its first card image is the LCP — the band renders only once the
+  // whole index has arrived, so put every page in flight now (the fetch in
+  // article-list opens with the same three offsets) and start the fetch
+  // early instead of when the block decorates
   const aboveFold = [...main.querySelectorAll(':scope > .section')].slice(0, 2);
   if (aboveFold.some((s) => s.querySelector('.article-list.block'))) {
+    [500, 1000].forEach((offset) => {
+      hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=${offset}&limit=500`, 'fetch');
+    });
     import('../blocks/article-list/article-list.js')
       .then((mod) => mod.fetchQueryIndex())
       .catch(() => {});
