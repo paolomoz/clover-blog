@@ -55,30 +55,15 @@
   flex-direction: column;
 }
 
-/* the donor's statement-numeral voice (stat band), aria-hidden decoration */
-.article-list.lead .lead-index {
-  font-family: formula-black, formula-black-fallback, 'Arial Narrow', sans-serif;
-  font-weight: 900;
-  line-height: 1;
-  color: var(--color-silver);
-  user-select: none;
-}
-
-.article-list.lead .lead-copy .lead-index {
-  font-size: 128px;
-  margin-left: -5px; /* optical left alignment of the '0' */
-}
-
 .article-list.lead .card-body {
   flex: 0 0 auto;
   padding: 0;
   gap: var(--spacing-md);
 }
 
-/* bottom-anchor the story block against the image height — the space
-   between numeral and text is the composition, not a dead column */
+/* top-align the story block: content reads immediately below the section head */
 .article-list.lead .lead-copy .card-body {
-  margin-top: auto;
+  margin-top: 0;
 }
 
 .article-list.lead .lead-feature .card-title {
@@ -108,7 +93,7 @@
 
 .article-list.lead .lead-rail-item {
   display: grid;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: 28px 1fr;
   column-gap: var(--spacing-md);
   align-items: start;
   border-top: 1px solid var(--color-hairline);
@@ -116,24 +101,21 @@
   padding-top: var(--spacing-lg);
 }
 
-.article-list.lead .lead-rail .lead-index {
-  font-size: 26px;
-  color: var(--color-charcoal);
-  justify-self: start;
-  padding: 6px 8px 4px;
-  margin: -6px 0 0 -8px; /* pill padding without moving the numeral */
-  border-radius: var(--radius);
-  transition: background-color 0.12s ease-out;
+.article-list.lead .lead-mark {
+  display: inline-flex;
+  margin-top: 2px; /* optical cap-height alignment with the row title */
+  color: var(--color-slate);
+  transition: color 0.12s ease-out;
 }
 
-/* donor sub-nav active pill: Lime marks the story under the pointer */
-.article-list.lead .lead-rail-item:hover .lead-index,
-.article-list.lead .lead-rail-item:focus-within .lead-index {
-  background-color: var(--color-accent);
+/* the site's own mark answers the pointer in signature green */
+.article-list.lead .lead-rail-item:hover .lead-mark,
+.article-list.lead .lead-rail-item:focus-within .lead-mark {
+  color: var(--chrome-green, #280);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .article-list.lead .lead-rail .lead-index {
+  .article-list.lead .lead-mark {
     transition: none;
   }
 }
