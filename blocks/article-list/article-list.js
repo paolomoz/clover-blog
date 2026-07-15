@@ -32,24 +32,24 @@ export async function fetchQueryIndex() {
       // page through the index — the corpus is >1000 rows, above the
       // single-request cap of the .json pipeline
       const rows = [];
-      try {
-        const pageSize = 500;
-        const first = await fetch(`/query-index.json?offset=0&limit=${pageSize}`);
-        if (first.ok) {
-          const json = await first.json();
-          rows.push(...json.data);
-          const total = Math.min(json.total || 0, 5000);
-          // fetch the remaining pages in parallel — one round trip, not N
-          const pages = [];
-          for (let offset = rows.length; offset < total && rows.length; offset += pageSize) {
-            pages.push(fetch(`/query-index.json?offset=${offset}&limit=${pageSize}`)
-              .then((r) => (r.ok ? r.json() : { data: [] }))
-              .catch(() => ({ data: [] })));
-          }
-          (await Promise.all(pages)).forEach((p) => rows.push(...p.data));
+      const pageSize = 500;
+      const getPage = (offset) => fetch(`/query-index.json?offset=${offset}&limit=${pageSize}`)
+        .then((r) => (r.ok ? r.json() : { data: [], total: 0 }))
+        .catch(() => ({ data: [], total: 0 }));
+      // the corpus is known to be >1000 rows, so open with three concurrent
+      // page requests instead of paying a round trip to learn the total
+      const openWith = 3;
+      const batch = await Promise.all(
+        [...Array(openWith)].map((_, i) => getPage(i * pageSize)),
+      );
+      batch.forEach((p) => rows.push(...p.data));
+      const total = Math.min(batch[0].total || 0, 5000);
+      if (rows.length === openWith * pageSize && total > rows.length) {
+        const more = [];
+        for (let offset = rows.length; offset < total; offset += pageSize) {
+          more.push(getPage(offset));
         }
-      } catch (e) {
-        // network failure: render with whatever was fetched
+        (await Promise.all(more)).forEach((p) => rows.push(...p.data));
       }
       return rows;
     })();
@@ -88,14 +88,14 @@ export function dedupeByTitle(items) {
 
 export function buildIndexCard(item, opts = {}) {
   const {
-    excerpt = true, ctaText = 'Read more', kicker, eager = false,
+    excerpt = true, ctaText = 'Read more', kicker, eager = false, imgWidth = '660',
   } = opts;
   const title = stripSuffix(item.title) || item.path;
   const card = document.createElement('article');
   card.className = 'card';
 
   if (item.image && !item.image.startsWith('/default-meta-image')) {
-    const picture = createOptimizedPicture(item.image, title, eager, [{ width: '660' }]);
+    const picture = createOptimizedPicture(item.image, title, eager, [{ width: imgWidth }]);
     if (eager) picture.querySelector('img').fetchPriority = 'high';
     card.append(picture);
   }
@@ -173,7 +173,11 @@ export default async function decorate(block) {
   // likely LCP element — load it eagerly at top priority
   const firstList = block === document.querySelector('main .article-list.block');
   const buildCard = (item, i = -1) => buildIndexCard(item, {
-    ctaText, kicker: cfg.kicker, eager: firstList && i === 0,
+    ctaText,
+    kicker: cfg.kicker,
+    eager: firstList && i === 0,
+    // featured rows render 120-150px thumbs — don't ship 660px media
+    imgWidth: featured && i > 0 ? '320' : '660',
   });
 
   if (featured || pair || webinars) {
