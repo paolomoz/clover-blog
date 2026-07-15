@@ -439,6 +439,37 @@ export default async function decorate(block) {
     backTop.hidden = window.scrollY < window.innerHeight * 2;
   }, { passive: true });
 
+  // ---------- deep-link reveal ----------
+  /**
+   * scroll each open facet group's list so its first selected value is
+   * visible. Instant scrollTop assignment (no smooth-scroll jank), scoped to
+   * the list container. The section may still be display:none while the
+   * block decorates (no layout yet), so retry on rAF until it has height.
+   */
+  let initialRevealDone = false;
+  const revealSelected = (attempt = 0) => {
+    const groups = [...rail.querySelectorAll('.facet-group[open]')]
+      .filter((g) => g.querySelector('.facet-value.selected'));
+    if (!groups.length) return;
+    const probe = groups[0].querySelector('.facet-list');
+    if (probe && !probe.clientHeight) {
+      if (attempt < 120) window.requestAnimationFrame(() => revealSelected(attempt + 1));
+      return;
+    }
+    groups.forEach((g) => {
+      const list = g.querySelector('.facet-list');
+      const sel = list && list.querySelector('.facet-value.selected');
+      if (!sel) return;
+      const li = sel.closest('li') || sel;
+      const top = li.getBoundingClientRect().top
+        - list.getBoundingClientRect().top + list.scrollTop;
+      const bottom = top + li.offsetHeight;
+      if (top < list.scrollTop || bottom > list.scrollTop + list.clientHeight) {
+        list.scrollTop = Math.max(0, top - 8);
+      }
+    });
+  };
+
   // ---------- render: everything ----------
   render = () => {
     currentTerms = norm(state.q).split(/\s+/).filter(Boolean);
@@ -487,8 +518,9 @@ export default async function decorate(block) {
           values.unshift({ value: sel, count: 0 });
         }
       });
-      // default expanded when the list is short; user toggles persist after
-      const open = values.length <= 12;
+      // collapsed by default; a facet deep-linked in the URL (a selected
+      // value) loads expanded — user toggles persist after (openState)
+      const open = state[facet.key].length > 0;
       if (values.length) rail.append(buildFacetGroup(facet, values, open));
     });
     if (anyFilter) {
@@ -506,6 +538,14 @@ export default async function decorate(block) {
       const list = g.querySelector('.facet-list');
       if (list && scrollPos.has(g.dataset.facet)) list.scrollTop = scrollPos.get(g.dataset.facet);
     });
+
+    // deep-link reveal: on the initial load only, scroll each expanded
+    // group's list (instant, container-only — never the page) so the first
+    // selected value is visible
+    if (!initialRevealDone) {
+      initialRevealDone = true;
+      revealSelected();
+    }
 
     buildChips();
 

@@ -416,6 +416,9 @@ header .green-menus .nav-drop {
 }
 
 header .green-menus .nav-drop > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 54px;
   margin: 0 0 0 26px;
   padding: 0 9px;
@@ -423,9 +426,30 @@ header .green-menus .nav-drop > button {
   font-weight: 400;
 }
 
-header .green-menus .nav-drop > button:hover {
-  color: #fff;
-  text-decoration: underline;
+/* expand arrow after the first-level label; rotates 180° while open */
+header .green-menus .green-chevron {
+  flex: none;
+  transition: transform 150ms ease-out;
+}
+
+header .green-menus .nav-drop > button[aria-expanded='true'] .green-chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  header .green-menus .green-chevron {
+    transition: none;
+  }
+}
+
+/* hover/focus/open: white → Lime on label + arrow (currentColor). The donor
+   band dims to rgb(255 255 255 / 50%) on hover, which lands < 3:1 on the
+   band green — Lime is the site's action color and holds 4.3:1 on #257d1c */
+header .green-menus .nav-drop > button:hover,
+header .green-menus .nav-drop > button:focus-visible,
+header .green-menus .nav-drop > button[aria-expanded='true'] {
+  color: var(--color-accent);
+  text-decoration: none;
 }
 
 header .nav-drop > button[aria-expanded='true'] + .green-panel {

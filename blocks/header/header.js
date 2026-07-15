@@ -20,6 +20,11 @@ import { getMetadata } from '../../scripts/aem.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 const CLOSE_SVG = '<svg width="17" height="17" viewBox="0 0 14 14" aria-hidden="true"><line fill="none" stroke="currentColor" stroke-width="1.1" x1="1" y1="1" x2="13" y2="13"></line><line fill="none" stroke="currentColor" stroke-width="1.1" x1="13" y1="1" x2="1" y2="13"></line></svg>';
+const CHEVRON_SVG = '<svg class="green-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><polyline fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" points="2.5,4.25 6,7.75 9.5,4.25"></polyline></svg>';
+
+/** hover-open only where a real hover exists — touch gets first-tap toggle */
+const canHover = window.matchMedia('(hover: hover)');
+const HOVER_CLOSE_DELAY = 150;
 
 function directText(li) {
   return [...li.childNodes]
@@ -37,7 +42,14 @@ function closeAllDrops(scope) {
 
 let dropId = 0;
 
-/** turns a <li> with a nested <ul> into a click-to-open dropdown item */
+/**
+ * turns a <li> with a nested <ul> into a hover/focus-driven dropdown item.
+ * First-level items are BUTTONS (never links): hover opens with a small
+ * close delay (diagonal mouse travel), keyboard focus/Enter/Space opens,
+ * tabbing through the submenu keeps it open (focus stays inside the item),
+ * Escape closes and restores focus, and on touch (no hover) the first tap
+ * toggles. A chevron after the label rotates 180° while open.
+ */
 function buildDrop(li, panelBuilder, panelClass) {
   const item = document.createElement('li');
   item.className = 'nav-drop';
@@ -47,19 +59,59 @@ function buildDrop(li, panelBuilder, panelClass) {
   const toggle = document.createElement('button');
   toggle.type = 'button';
   toggle.setAttribute('aria-expanded', 'false');
+  toggle.setAttribute('aria-haspopup', 'true');
   toggle.setAttribute('aria-controls', id);
-  toggle.textContent = directText(li);
+  const label = document.createElement('span');
+  label.className = 'nav-drop-label';
+  label.textContent = directText(li);
+  toggle.append(label);
+  toggle.insertAdjacentHTML('beforeend', CHEVRON_SVG);
 
   const panel = document.createElement('div');
   panel.className = panelClass;
   panel.id = id;
   panelBuilder(li.querySelector(':scope > ul'), panel);
 
+  const setOpen = (open) => {
+    if (open) closeAllDrops(toggle.closest('.header') || document);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  // click = keyboard Enter/Space + touch first tap (toggle)
   toggle.addEventListener('click', (e) => {
     e.stopPropagation();
-    const expanded = toggle.getAttribute('aria-expanded') === 'true';
-    closeAllDrops(toggle.closest('.header'));
-    toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+  });
+
+  // keyboard focus opens (mouse/touch focus is not :focus-visible)
+  toggle.addEventListener('focus', () => {
+    if (toggle.matches(':focus-visible')) setOpen(true);
+  });
+
+  // hover open/close with a short close delay; hovering the panel (inside
+  // the item) cancels the pending close, so the submenu stays open
+  let hoverCloseTimer = null;
+  item.addEventListener('mouseenter', () => {
+    if (!canHover.matches) return;
+    if (hoverCloseTimer) {
+      clearTimeout(hoverCloseTimer);
+      hoverCloseTimer = null;
+    }
+    setOpen(true);
+  });
+  item.addEventListener('mouseleave', () => {
+    if (!canHover.matches) return;
+    hoverCloseTimer = setTimeout(() => {
+      toggle.setAttribute('aria-expanded', 'false');
+      hoverCloseTimer = null;
+    }, HOVER_CLOSE_DELAY);
+  });
+
+  // keyboard: tabbing OUT of the item closes it (focus-within keeps it open)
+  item.addEventListener('focusout', (e) => {
+    if (e.relatedTarget && !item.contains(e.relatedTarget)) {
+      toggle.setAttribute('aria-expanded', 'false');
+    }
   });
 
   item.append(toggle, panel);
@@ -372,6 +424,13 @@ export default async function decorate(block) {
   });
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Escape') {
+      // restore focus to the open drop's toggle when focus sits inside it
+      // (focus BEFORE closing — the toggle's focus handler re-opens, and the
+      // closeAllDrops right after wins, so the drop ends up closed + focused)
+      const openToggle = block.querySelector('.nav-drop > button[aria-expanded="true"]');
+      if (openToggle && openToggle.parentElement.contains(document.activeElement)) {
+        openToggle.focus();
+      }
       closeAllDrops(block);
       closeOffcanvas();
     }
