@@ -1,6 +1,11 @@
-/* search — donor-grammar results page: input, count line, facet rail,
-   hairline-separated result rows, term highlight (Lime wash), pagination
-   styles reused from blocks/pagination/pagination.css */
+/* search — donor-grammar results page: input, count line, facet rail
+   (multi-select checkboxes), selected-filter chips, hairline-separated
+   result rows, term highlight (Lime wash), progressive loading */
+
+.search {
+  /* pill rounding derived from the system radius token (8px * 5 = 40px) */
+  --radius-pill: calc(var(--radius) * 5);
+}
 
 .search .search-form {
   position: relative;
@@ -27,7 +32,7 @@
   min-height: 48px;
   padding: 10px 16px 10px 44px;
   border: 1px solid var(--color-hairline);
-  border-radius: 40px;
+  border-radius: var(--radius-pill);
   font-family: var(--body-font-family);
   font-size: var(--body);
   color: var(--color-fg);
@@ -122,6 +127,20 @@
 .search .facet-value.selected {
   background: var(--color-accent);
   font-weight: 500;
+}
+
+.search .facet-check {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-forest);
+  cursor: pointer;
+}
+
+.search .facet-check:focus-visible {
+  outline: 2px solid var(--color-forest);
+  outline-offset: 2px;
 }
 
 .search .facet-name {
@@ -245,17 +264,107 @@
   border-radius: var(--radius-lg);
 }
 
-/* ---------- pagination (base styles from blocks/pagination) ---------- */
+/* ---------- selected-filter chips ---------- */
 
-.search .search-pagination {
-  margin-top: var(--spacing-xl);
+.search .search-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
 }
 
-.search .search-pagination .page-ellipsis {
+.search .search-chips:not(:empty) {
+  margin-bottom: var(--spacing-md);
+}
+
+.search .search-chip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
+  gap: 6px;
+  min-height: 36px;
+  margin: 0;
+  padding: 4px var(--spacing-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  font-family: var(--body-font-family);
+  font-size: var(--body-sm);
+  font-weight: 500;
+  color: var(--color-fg);
+  cursor: pointer;
+}
+
+.search .search-chip-x {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.search .search-chip-clear {
+  background: none;
+  border: 1px solid var(--color-hairline);
+  font-weight: 300;
+  color: var(--color-forest);
+  text-decoration: underline;
+}
+
+/* ---------- progressive loading ---------- */
+
+.search .search-sentinel {
+  height: 1px;
+}
+
+.search .search-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg) 0;
+  font-size: var(--body-sm);
   color: var(--color-slate);
+}
+
+.search .search-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-hairline);
+  border-top-color: var(--color-forest);
+  border-radius: 50%;
+  animation: search-spin 0.8s linear infinite;
+}
+
+@keyframes search-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search .search-spinner {
+    animation: none;
+  }
+}
+
+/* ---------- back to top ---------- */
+
+.search .search-back-top {
+  position: fixed;
+  right: var(--spacing-lg);
+  bottom: var(--spacing-lg);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px var(--spacing-md);
+  border: 1px solid var(--color-forest);
+  border-radius: var(--radius-pill);
+  background: var(--color-forest);
+  font-family: var(--body-font-family);
+  font-size: var(--body-sm);
+  font-weight: 500;
+  color: var(--color-bg);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+}
+
+.search .search-back-top:hover {
+  background: var(--color-fg);
+  border-color: var(--color-fg);
 }
