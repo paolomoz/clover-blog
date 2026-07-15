@@ -73,10 +73,12 @@ indices:
         value: attribute(el, 'content')
       # full-text recall: first ~500 words of the article body (WP search
       # matches full post content; this approaches its recall without an
-      # unbounded index row) plus all section headings
+      # unbounded index row) plus all section headings. Boilerplate sections
+      # (.sidebar popular-topics/newsletter, .tags chips) are excluded so
+      # tag-name queries don't match every page.
       text:
-        select: main
+        select: 'main > div:not(.sidebar, .tags)'
         value: words(textContent(el), 0, 500)
       headings:
-        select: main h2, main h3
+        select: 'main > div:not(.sidebar, .tags) h2, main > div:not(.sidebar, .tags) h3'
         values: textContent(el)
