@@ -20,7 +20,7 @@ import { getMetadata } from '../../scripts/aem.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 const CLOSE_SVG = '<svg width="17" height="17" viewBox="0 0 14 14" aria-hidden="true"><line fill="none" stroke="currentColor" stroke-width="1.1" x1="1" y1="1" x2="13" y2="13"></line><line fill="none" stroke="currentColor" stroke-width="1.1" x1="13" y1="1" x2="1" y2="13"></line></svg>';
-const CHEVRON_SVG = '<svg class="green-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><polyline fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" points="2.5,4.25 6,7.75 9.5,4.25"></polyline></svg>';
+const CHEVRON_SVG = '<svg class="green-chevron" width="13" height="10" viewBox="0 0 13 10" aria-hidden="true" focusable="false"><polygon fill="currentColor" points="0.5,1 12.5,1 6.5,9"></polygon></svg>';
 
 /** hover-open only where a real hover exists — touch gets first-tap toggle */
 const canHover = window.matchMedia('(hover: hover)');
@@ -65,7 +65,7 @@ function buildDrop(li, panelBuilder, panelClass) {
   label.className = 'nav-drop-label';
   label.textContent = directText(li);
   toggle.append(label);
-  toggle.insertAdjacentHTML('beforeend', CHEVRON_SVG);
+  toggle.insertAdjacentHTML('afterbegin', CHEVRON_SVG);
 
   const panel = document.createElement('div');
   panel.className = panelClass;
