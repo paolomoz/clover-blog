@@ -48,13 +48,16 @@ async function fetchSearchIndex() {
 // ---------- matching + ranking ----------
 const norm = (s) => (s == null ? '' : String(s)).toLowerCase();
 
+/** page titles carry a site suffix the WP results never showed */
+const stripSuffix = (t) => String(t || '').replace(/\s*[-–|]\s*(The Green\s*[-–|]\s*)?Clover Blog\s*$/i, '');
+
 const fieldCache = new WeakMap();
 function itemFields(item) {
   let f = fieldCache.get(item);
   if (!f) {
     const headings = Array.isArray(item.headings) ? item.headings.join(' ') : (item.headings || '');
     f = {
-      title: norm(item.title),
+      title: norm(stripSuffix(item.title)),
       taxo: `${norm(item.category)} ${norm(item.tags)}`,
       description: norm(item.description),
       body: `${norm(item.text)} ${norm(headings)}`,
@@ -208,7 +211,11 @@ export default async function decorate(block) {
   input.value = state.q;
 
   status.textContent = 'Loading the article index…';
-  const index = (await fetchSearchIndex()).filter((item) => item.path !== '/search' && item.path !== '/');
+  // exclude navigation/archive pages — the original WP search returns posts,
+  // not category/tag archives or hub pages
+  const NAV_TEMPLATES = new Set(['listing', 'hub', 'landing']);
+  const index = (await fetchSearchIndex()).filter((item) => item.path !== '/search'
+    && item.path !== '/' && !NAV_TEMPLATES.has(norm(item.template)));
   const usingFullText = index.some((item) => item.text);
   if (!usingFullText) {
     // eslint-disable-next-line no-console
@@ -237,7 +244,7 @@ export default async function decorate(block) {
     title.className = 'search-row-title';
     const link = document.createElement('a');
     link.href = item.path;
-    appendHighlighted(link, item.title || item.path, terms);
+    appendHighlighted(link, stripSuffix(item.title) || item.path, terms);
     title.append(link);
     body.append(title);
 
