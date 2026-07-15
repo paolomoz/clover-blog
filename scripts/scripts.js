@@ -203,7 +203,9 @@ function preloadLazyResources(main) {
   // whole index has arrived, so put every page in flight now (the fetch in
   // article-list opens with the same three offsets) and start the fetch
   // early instead of when the block decorates
-  const aboveFold = [...main.querySelectorAll(':scope > .section')].slice(0, 2);
+  const aboveFold = [...main.querySelectorAll(':scope > .section')]
+    .filter((s) => s.textContent.trim())
+    .slice(0, 2);
   if (aboveFold.some((s) => s.querySelector('.article-list.block'))) {
     [500, 1000].forEach((offset) => {
       hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=${offset}&limit=500`, 'fetch');
