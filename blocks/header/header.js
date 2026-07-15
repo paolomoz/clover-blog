@@ -2,15 +2,24 @@
  * header — Clover corporate chrome + "The Green" blog band.
  *
  * Reproduces the captured blog.clover.com chrome (chromePolicy:
- * verbatim-copy) with simplified semantic markup: the uikit offcanvas mega
- * menu becomes accessible click-to-open dropdown panels, and the mobile
- * offcanvas becomes a drawer. Content comes from the /nav document:
- * section 1 = logo, section 2 = corporate verticals (nested lists),
- * section 3 = utility links, section 4 = blog band (brand + dropdown lists).
- * The blog-band search submits to /search?q= (search block).
+ * verbatim-copy). The corporate vertical links (Restaurants, Services, …)
+ * open a full-height LEFT SLIDE-IN offcanvas panel — the original site's
+ * uikit offcanvas (#drawer-widget) pattern: overlay, close button,
+ * aria-modal dialog, focus trap, Escape/overlay-click close, body scroll
+ * lock, ~250ms ease-out slide. On mobile the hamburger opens the same
+ * offcanvas with an accordion menu (the original's #offcanvas). The green
+ * blog band keeps its click-to-open dropdowns (the original uses uk-dropdown
+ * there, not the offcanvas).
+ *
+ * Content comes from the /nav document: section 1 = logo, section 2 =
+ * corporate verticals (nested lists), section 3 = utility links,
+ * section 4 = blog band (brand + dropdown lists). The blog-band search
+ * submits to /search?q= (search block).
  */
 import { getMetadata } from '../../scripts/aem.js';
 import { loadFragment } from '../fragment/fragment.js';
+
+const CLOSE_SVG = '<svg width="17" height="17" viewBox="0 0 14 14" aria-hidden="true"><line fill="none" stroke="currentColor" stroke-width="1.1" x1="1" y1="1" x2="13" y2="13"></line><line fill="none" stroke="currentColor" stroke-width="1.1" x1="13" y1="1" x2="1" y2="13"></line></svg>';
 
 function directText(li) {
   return [...li.childNodes]
@@ -107,7 +116,7 @@ export default async function decorate(block) {
   const hamburger = document.createElement('button');
   hamburger.className = 'nav-hamburger';
   hamburger.type = 'button';
-  hamburger.setAttribute('aria-controls', 'nav-drawer');
+  hamburger.setAttribute('aria-controls', 'nav-offcanvas');
   hamburger.setAttribute('aria-expanded', 'false');
   hamburger.setAttribute('aria-label', 'Open menu');
   hamburger.innerHTML = '<span></span><span></span><span></span>';
@@ -124,11 +133,32 @@ export default async function decorate(block) {
     brand.append(brandLink);
   }
 
-  // vertical menus
+  /* ---- corporate verticals → offcanvas toggles + panels ---- */
+  const verticals = [...(menuSection?.querySelectorAll(':scope > div > ul > li') || [])];
+  const labels = verticals.map((li) => directText(li));
+
   const menus = document.createElement('ul');
   menus.className = 'nav-menus';
-  menuSection?.querySelectorAll(':scope > div > ul > li').forEach((li) => {
-    menus.append(buildDrop(li, buildMegaPanel, 'nav-panel'));
+  const toggles = [];
+  const panels = [];
+
+  verticals.forEach((li, i) => {
+    const item = document.createElement('li');
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'nav-oc-toggle';
+    toggle.textContent = labels[i];
+    toggle.setAttribute('aria-haspopup', 'dialog');
+    toggle.setAttribute('aria-controls', 'nav-offcanvas');
+    toggle.setAttribute('aria-expanded', 'false');
+    item.append(toggle);
+    menus.append(item);
+    toggles.push(toggle);
+
+    const panel = document.createElement('div');
+    panel.className = 'nav-oc-panel';
+    buildMegaPanel(li.querySelector(':scope > ul'), panel);
+    panels.push(panel);
   });
 
   // utility links
@@ -146,25 +176,155 @@ export default async function decorate(block) {
   corporateInner.append(hamburger, brand, menus, utility);
   corporate.append(corporateInner);
 
-  /* ---- mobile drawer ---- */
-  const drawer = document.createElement('div');
-  drawer.className = 'nav-drawer';
-  drawer.id = 'nav-drawer';
-  const drawerMenus = menus.cloneNode(true);
-  const drawerUtility = utility.cloneNode(true);
-  drawer.append(drawerMenus, drawerUtility);
-  drawerMenus.querySelectorAll('.nav-drop > button').forEach((b) => {
-    b.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const expanded = b.getAttribute('aria-expanded') === 'true';
-      b.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+  /* ---- offcanvas (left slide-in panel, original uikit pattern) ---- */
+  const offcanvas = document.createElement('div');
+  offcanvas.className = 'nav-offcanvas';
+  offcanvas.id = 'nav-offcanvas';
+  offcanvas.hidden = true;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'nav-offcanvas-overlay';
+
+  const bar = document.createElement('div');
+  bar.className = 'nav-offcanvas-bar';
+  bar.setAttribute('role', 'dialog');
+  bar.setAttribute('aria-modal', 'true');
+  bar.setAttribute('aria-label', 'Menu');
+  bar.tabIndex = -1;
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'nav-offcanvas-close';
+  closeBtn.setAttribute('aria-label', 'Close menu');
+  closeBtn.innerHTML = CLOSE_SVG;
+
+  // desktop: one switched panel per vertical
+  const desktop = document.createElement('div');
+  desktop.className = 'nav-oc-desktop';
+  panels.forEach((p) => desktop.append(p));
+
+  // mobile: accordion of all verticals + utility links (original #offcanvas)
+  const mobile = document.createElement('div');
+  mobile.className = 'nav-oc-mobile';
+  const mobileHeading = document.createElement('p');
+  mobileHeading.className = 'nav-oc-heading';
+  mobileHeading.textContent = 'Main Menu';
+  mobile.append(mobileHeading);
+  verticals.forEach((li, i) => {
+    const acc = document.createElement('div');
+    acc.className = 'nav-oc-acc';
+    dropId += 1;
+    const accId = `nav-acc-${dropId}`;
+    const accBtn = document.createElement('button');
+    accBtn.type = 'button';
+    accBtn.textContent = labels[i];
+    accBtn.setAttribute('aria-expanded', 'false');
+    accBtn.setAttribute('aria-controls', accId);
+    const accPanel = document.createElement('div');
+    accPanel.className = 'nav-oc-acc-panel';
+    accPanel.id = accId;
+    accPanel.append(...[...panels[i].childNodes].map((n) => n.cloneNode(true)));
+    accBtn.addEventListener('click', () => {
+      const expanded = accBtn.getAttribute('aria-expanded') === 'true';
+      accBtn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    });
+    acc.append(accBtn, accPanel);
+    mobile.append(acc);
+  });
+  const mobileUtility = utility.cloneNode(true);
+  mobileUtility.className = 'nav-oc-utility';
+  mobile.append(mobileUtility);
+
+  bar.append(closeBtn, desktop, mobile);
+  offcanvas.append(overlay, bar);
+
+  /* offcanvas state machine */
+  let openInvoker = null;
+  let closeTimer = null;
+
+  function syncExpanded(activeIndex) {
+    toggles.forEach((t, j) => t.setAttribute('aria-expanded', String(j === activeIndex)));
+  }
+
+  function showPanel(i) {
+    panels.forEach((p, j) => p.classList.toggle('active', j === i));
+    bar.setAttribute('aria-label', i >= 0 ? `${labels[i]} menu` : 'Menu');
+    syncExpanded(i);
+  }
+
+  function openOffcanvas(invoker) {
+    openInvoker = invoker;
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+    if (offcanvas.hidden) {
+      offcanvas.hidden = false;
+      // double rAF so the initial (off-screen) frame paints before the slide
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => offcanvas.classList.add('is-open'));
+      });
+      document.body.classList.add('nav-offcanvas-open');
+      closeBtn.focus();
+    }
+  }
+
+  function closeOffcanvas(restoreFocus = true) {
+    if (offcanvas.hidden) return;
+    offcanvas.classList.remove('is-open');
+    showPanel(-1);
+    hamburger.setAttribute('aria-expanded', 'false');
+    hamburger.setAttribute('aria-label', 'Open menu');
+    document.body.classList.remove('nav-offcanvas-open');
+    closeTimer = setTimeout(() => {
+      offcanvas.hidden = true;
+      closeTimer = null;
+    }, 300);
+    if (restoreFocus && openInvoker) openInvoker.focus();
+    openInvoker = null;
+  }
+
+  toggles.forEach((toggle, i) => {
+    toggle.addEventListener('click', () => {
+      const isActive = panels[i].classList.contains('active') && !offcanvas.hidden;
+      if (isActive) {
+        closeOffcanvas();
+        return;
+      }
+      showPanel(i);
+      openOffcanvas(toggle);
+      openInvoker = toggle;
     });
   });
+
   hamburger.addEventListener('click', () => {
-    const expanded = hamburger.getAttribute('aria-expanded') === 'true';
-    hamburger.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-    hamburger.setAttribute('aria-label', expanded ? 'Open menu' : 'Close menu');
-    document.body.classList.toggle('nav-drawer-open', !expanded);
+    if (!offcanvas.hidden) {
+      closeOffcanvas();
+      return;
+    }
+    hamburger.setAttribute('aria-expanded', 'true');
+    hamburger.setAttribute('aria-label', 'Close menu');
+    openOffcanvas(hamburger);
+  });
+
+  closeBtn.addEventListener('click', () => closeOffcanvas());
+  overlay.addEventListener('click', () => closeOffcanvas());
+
+  // focus trap inside the dialog
+  bar.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const focusables = [...bar.querySelectorAll('a[href], button')]
+      .filter((el) => el.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   });
 
   /* ---- The Green blog band ---- */
@@ -204,13 +364,16 @@ export default async function decorate(block) {
   greenInner.append(greenBrand, greenMenus, search);
   green.append(greenInner);
 
-  block.append(corporate, drawer, green);
+  block.append(corporate, offcanvas, green);
 
-  // close dropdowns on outside click / escape
+  // close dropdowns on outside click / escape; escape also closes the offcanvas
   document.addEventListener('click', (e) => {
     if (!block.contains(e.target)) closeAllDrops(block);
   });
   document.addEventListener('keydown', (e) => {
-    if (e.code === 'Escape') closeAllDrops(block);
+    if (e.code === 'Escape') {
+      closeAllDrops(block);
+      closeOffcanvas();
+    }
   });
 }

@@ -11,7 +11,7 @@ header .header {
 /* ---- corporate bar ---- */
 header .nav-corporate {
   background: #fff;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--chrome-hairline);
 }
 
 header .nav-corporate-inner {
@@ -47,10 +47,7 @@ header .nav-utility {
   margin-left: auto;
 }
 
-header .nav-drop {
-  position: relative;
-}
-
+header .nav-menus .nav-oc-toggle,
 header .nav-drop > button {
   appearance: none;
   background: none;
@@ -64,8 +61,14 @@ header .nav-drop > button {
   cursor: pointer;
 }
 
+header .nav-menus .nav-oc-toggle:hover,
 header .nav-drop > button:hover {
   color: var(--chrome-green);
+}
+
+/* the vertical whose offcanvas panel is open gets the donor's green underline */
+header .nav-menus .nav-oc-toggle[aria-expanded='true'] {
+  box-shadow: inset 0 -3px 0 var(--chrome-green);
 }
 
 header .nav-utility a {
@@ -103,36 +106,96 @@ header .nav-utility .feature-btn a:hover {
   color: #fff;
 }
 
-/* corporate dropdown panel (simplified from the captured offcanvas drawer) */
-header .nav-panel {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: -24px;
-  z-index: 210;
-  min-width: 520px;
-  padding: 24px 32px 30px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  box-shadow: rgb(0 0 0 / 8%) 0 12px 24px 0;
+/* ---- offcanvas: full-height left slide-in panel (original uikit offcanvas) ---- */
+header .nav-offcanvas {
+  position: fixed;
+  inset: 64px 0 0;
+  z-index: 300;
 }
 
-header .nav-drop > button[aria-expanded='true'] + .nav-panel,
-header .nav-drop > button[aria-expanded='true'] + .green-panel {
+header .nav-offcanvas[hidden] {
+  display: none;
+}
+
+header .nav-offcanvas-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 10%);
+  opacity: 0;
+  transition: opacity 0.15s linear;
+}
+
+header .nav-offcanvas-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(636px, 100vw);
+  background: #fff;
+  overflow-y: auto;
+  padding: 40px 0;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease-out;
+}
+
+header .nav-offcanvas.is-open .nav-offcanvas-overlay {
+  opacity: 1;
+}
+
+header .nav-offcanvas.is-open .nav-offcanvas-bar {
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  header .nav-offcanvas-overlay,
+  header .nav-offcanvas-bar {
+    transition: none;
+  }
+}
+
+header .nav-offcanvas-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  appearance: none;
+  background: none;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: #5a5a5a;
+  cursor: pointer;
+}
+
+header .nav-offcanvas-close:hover {
+  color: #000;
+}
+
+/* desktop panels: one vertical shown at a time */
+header .nav-oc-panel {
+  display: none;
+}
+
+header .nav-oc-panel.active {
   display: block;
 }
 
-header .nav-panel .nav-group {
-  padding: 16px 0;
-  border-bottom: 1px solid #e5e5e5;
+/* shared panel content (captured offcanvas typography) */
+header .nav-offcanvas .nav-group {
+  margin: 0 32px;
+  padding: 24px 0 20px;
+  border-bottom: 1px solid var(--chrome-hairline);
 }
 
-header .nav-panel .nav-group:last-child {
+header .nav-offcanvas .nav-group:last-child {
   border-bottom: 0;
 }
 
-header .nav-subtitle {
-  margin: 0 0 6px;
+header .nav-offcanvas .nav-subtitle {
+  margin: 0 0 8px;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.025em;
@@ -140,38 +203,144 @@ header .nav-subtitle {
   color: #000;
 }
 
-header .nav-panel ul {
+header .nav-offcanvas .nav-group ul,
+header .nav-offcanvas ul.nav-flat {
   list-style: none;
   margin: 0;
-  padding: 0;
-  columns: 2;
-  column-gap: 32px;
+  padding: 0 0 0 46px;
 }
 
-header .nav-panel ul.nav-flat {
-  columns: 1;
-  padding: 8px 0;
+header .nav-offcanvas ul.nav-flat {
+  padding-top: 24px;
 }
 
-header .nav-panel li {
+header .nav-offcanvas .nav-group li,
+header .nav-offcanvas ul.nav-flat li {
   margin: 0;
-  break-inside: avoid;
 }
 
-header .nav-panel a {
-  display: inline-block;
-  padding: 6px 0;
-  font-size: 15px;
+header .nav-offcanvas .nav-group a,
+header .nav-offcanvas ul.nav-flat a {
+  display: block;
+  padding: 9px 0;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.0225em;
   color: #000;
   text-decoration: none;
 }
 
-header .nav-panel a:hover {
+header .nav-offcanvas .nav-group a:hover,
+header .nav-offcanvas ul.nav-flat a:hover {
   color: var(--chrome-green);
   text-decoration: underline;
 }
 
-/* ---- hamburger + drawer (mobile) ---- */
+/* mobile accordion (hamburger view of the same offcanvas) */
+header .nav-oc-mobile {
+  display: none;
+}
+
+header .nav-oc-heading {
+  margin: 0 24px 4px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--chrome-hairline);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  color: #5a5a5a;
+}
+
+header .nav-oc-acc > button {
+  appearance: none;
+  display: block;
+  width: 100%;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--chrome-hairline);
+  margin: 0;
+  padding: 14px 24px;
+  text-align: left;
+  font-family: var(--body-font-family);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.0225em;
+  color: #000;
+  cursor: pointer;
+}
+
+header .nav-oc-acc-panel {
+  display: none;
+  padding: 0 24px;
+}
+
+header .nav-oc-acc > button[aria-expanded='true'] + .nav-oc-acc-panel {
+  display: block;
+}
+
+header .nav-oc-acc-panel .nav-group,
+header .nav-oc-acc-panel ul.nav-flat {
+  margin: 0;
+}
+
+header .nav-oc-acc-panel .nav-group ul,
+header .nav-oc-acc-panel ul.nav-flat {
+  padding-left: 16px;
+}
+
+header .nav-oc-acc-panel .nav-group a,
+header .nav-oc-acc-panel ul.nav-flat a {
+  font-size: 18px;
+}
+
+header .nav-oc-utility {
+  list-style: none;
+  margin: 0;
+  padding: 8px 24px 24px;
+}
+
+header .nav-oc-utility li {
+  margin: 0;
+}
+
+header .nav-oc-utility a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 16px;
+  color: #000;
+  text-decoration: none;
+}
+
+header .nav-oc-utility a:hover {
+  color: var(--chrome-green);
+}
+
+header .nav-oc-utility .nav-cart {
+  display: none;
+}
+
+header .nav-oc-utility .feature-btn a {
+  background: var(--chrome-green);
+  border-radius: 8px;
+  color: #fff;
+  min-height: 46px;
+  margin-top: 12px;
+  padding: 0 17px;
+}
+
+header .nav-oc-utility .feature-btn a:hover {
+  background: var(--chrome-green-hover);
+  color: #fff;
+}
+
+/* body scroll lock while the offcanvas is open */
+body.nav-offcanvas-open {
+  overflow: hidden;
+}
+
+/* ---- hamburger (mobile) ---- */
 header .nav-hamburger {
   display: none;
   appearance: none;
@@ -205,69 +374,6 @@ header .nav-hamburger span:nth-child(2) {
 
 header .nav-hamburger span:nth-child(3) {
   top: 24px;
-}
-
-header .nav-drawer {
-  display: none;
-  position: absolute;
-  top: 64px;
-  left: 0;
-  right: 0;
-  z-index: 220;
-  max-height: calc(100vh - 64px);
-  overflow-y: auto;
-  background: #fff;
-  border-bottom: 1px solid #e5e5e5;
-  padding: 16px 24px 32px;
-}
-
-body.nav-drawer-open header .nav-drawer {
-  display: block;
-}
-
-header .nav-drawer .nav-menus,
-header .nav-drawer .nav-utility {
-  display: block;
-  margin: 0;
-}
-
-header .nav-drawer .nav-drop > button {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-  margin: 0;
-  text-align: left;
-  font-size: 18px;
-  border-bottom: 1px solid #e5e5e5;
-}
-
-header .nav-drawer .nav-panel {
-  display: none;
-  position: static;
-  min-width: 0;
-  border: 0;
-  box-shadow: none;
-  padding: 8px 0 8px 16px;
-}
-
-header .nav-drawer .nav-drop > button[aria-expanded='true'] + .nav-panel {
-  display: block;
-}
-
-header .nav-drawer .nav-panel ul {
-  columns: 1;
-}
-
-header .nav-drawer .nav-utility a {
-  min-height: 44px;
-  margin: 0;
-  font-size: 16px;
-}
-
-header .nav-drawer .nav-utility .feature-btn a {
-  display: inline-flex;
-  margin: 12px 0 0;
-  padding: 0 17px;
 }
 
 /* ---- The Green band ---- */
@@ -305,6 +411,10 @@ header .green-menus {
   margin-left: 20px;
 }
 
+header .green-menus .nav-drop {
+  position: relative;
+}
+
 header .green-menus .nav-drop > button {
   min-height: 54px;
   margin: 0 0 0 26px;
@@ -316,6 +426,10 @@ header .green-menus .nav-drop > button {
 header .green-menus .nav-drop > button:hover {
   color: #fff;
   text-decoration: underline;
+}
+
+header .nav-drop > button[aria-expanded='true'] + .green-panel {
+  display: block;
 }
 
 header .green-panel {
@@ -391,9 +505,16 @@ header .green-search input::placeholder {
   opacity: 1;
 }
 
-header .green-search input:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 4px;
+/* focus: no default box on the input — the pill itself carries a visible
+   indicator (brighter fill + white inner ring hugging the rounded shape),
+   which keeps keyboard focus obvious against the green band (WCAG 2.4.7) */
+header .green-search input:focus {
+  outline: none;
+}
+
+header .green-search:focus-within {
+  background: rgb(255 255 255 / 30%);
+  box-shadow: inset 0 0 0 2px #fff;
 }
 
 /* ---- responsive: below the captured uk-hidden@l breakpoint ---- */
@@ -405,6 +526,18 @@ header .green-search input:focus-visible {
 
   header .nav-hamburger {
     display: block;
+  }
+
+  header .nav-oc-desktop {
+    display: none;
+  }
+
+  header .nav-oc-mobile {
+    display: block;
+  }
+
+  header .nav-offcanvas-bar {
+    padding-top: 48px;
   }
 
   header .nav-green-inner {

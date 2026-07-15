@@ -24,6 +24,7 @@
   --chrome-green: #280;
   --chrome-green-hover: #276a16;
   --chrome-green-band: #257d1c;
+  --chrome-hairline: #e5e5e5;
 
   /* type */
   --heading-font-family: altform, -apple-system, blinkmacsystemfont, 'Segoe UI', 'Helvetica Neue', arial, sans-serif;
@@ -168,6 +169,12 @@ main .section.pine .button:focus-visible {
 /* ---- sections: full-width bands, contained content (donor band system) ---- */
 main > .section {
   padding: var(--section-padding) 0;
+}
+
+/* a section left empty (e.g. by the consumed metadata block) must not add
+   band padding between the chrome and the first content band */
+main > .section:not(:has(*)) {
+  display: none;
 }
 
 main > .section > div {
