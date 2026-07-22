@@ -204,13 +204,17 @@ function preloadLazyResources(main) {
     .filter((s) => s.textContent.trim())
     .slice(0, 2);
   const listingOnTop = aboveFold.some((s) => s.querySelector('.article-list.block'));
+  // locale trees have their own index; this early warm-up must hit the same
+  // path article-list's fetchQueryIndex would, or it memoizes the wrong (US)
+  // index into window.queryIndexPromise for a /ca or /ca-fr page
+  const localePrefix = (window.location.pathname.match(/^\/(?:ca|ca-fr)(?=\/|$)/) || [''])[0];
   if (!listingOnTop && (names.has('article-list') || names.has('cards') || names.has('sidebar'))) {
     // below-fold consumers (related band, rail) just get the first page warmed
-    hint('preload', `${window.hlx.codeBasePath}/query-index.json?offset=0&limit=500`, 'fetch');
+    hint('preload', `${window.hlx.codeBasePath}${localePrefix}/query-index.json?offset=0&limit=500`, 'fetch');
   }
   if (listingOnTop && !window.queryIndexPromise) {
     const pageSize = 500;
-    const getPage = (offset) => fetch(`${window.hlx.codeBasePath}/query-index.json?offset=${offset}&limit=${pageSize}`)
+    const getPage = (offset) => fetch(`${window.hlx.codeBasePath}${localePrefix}/query-index.json?offset=${offset}&limit=${pageSize}`)
       .then((r) => (r.ok ? r.json() : { data: [], total: 0 }))
       .catch(() => ({ data: [], total: 0 }));
     window.queryIndexPromise = Promise.all([0, 500, 1000].map(getPage)).then(async (pages) => {
