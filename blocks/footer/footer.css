@@ -151,7 +151,7 @@ footer .footer-copy .default-content-wrapper {
 /* copyright line takes the remaining width (its own text wraps) so the picker
    stays on the same row, flush right, instead of wrapping below */
 footer .footer-copy .default-content-wrapper > p {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
 }
 
