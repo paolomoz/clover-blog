@@ -137,6 +137,17 @@ footer .footer-copy {
   margin-top: 40px;
 }
 
+/* EDS wraps the copyright line + locale picker in one default-content-wrapper;
+   make that the row so the picker sits right, centered against the copyright */
+footer .footer-copy .default-content-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  width: 100%;
+}
+
 footer .footer-copy p {
   margin: 0;
   font-size: 14px;
