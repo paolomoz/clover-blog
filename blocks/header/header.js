@@ -17,6 +17,7 @@
  * submits to /search?q= (search block).
  */
 import { getMetadata } from '../../scripts/aem.js';
+import { t as tr } from '../../scripts/i18n.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 const CLOSE_SVG = '<svg width="17" height="17" viewBox="0 0 14 14" aria-hidden="true"><line fill="none" stroke="currentColor" stroke-width="1.1" x1="1" y1="1" x2="13" y2="13"></line><line fill="none" stroke="currentColor" stroke-width="1.1" x1="13" y1="1" x2="1" y2="13"></line></svg>';
@@ -406,15 +407,17 @@ export default async function decorate(block) {
 
   const search = document.createElement('form');
   search.className = 'green-search';
-  search.action = '/search';
+  // post to the locale's own search page and localize the label/placeholder
+  search.action = `${localePrefix}/search`;
   search.method = 'get';
   search.setAttribute('role', 'search');
+  const searchLabel = tr('Search the blog');
   search.innerHTML = `
     <span class="green-search-icon" aria-hidden="true">
       <svg width="20" height="20" viewBox="0 0 20 20"><circle fill="none" stroke="currentColor" stroke-width="1.1" cx="9" cy="9" r="7"></circle><path fill="none" stroke="currentColor" stroke-width="1.1" d="M14,14 L18,18 L14,14 Z"></path></svg>
     </span>
-    <label class="green-search-label" for="header-search">Search the blog</label>
-    <input id="header-search" type="search" name="q" placeholder="Search the blog" autocomplete="off">
+    <label class="green-search-label" for="header-search">${searchLabel}</label>
+    <input id="header-search" type="search" name="q" placeholder="${searchLabel}" autocomplete="off">
   `;
 
   greenInner.append(greenBrand, greenMenus, search);
