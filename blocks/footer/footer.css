@@ -148,6 +148,17 @@ footer .footer-copy .default-content-wrapper {
   width: 100%;
 }
 
+/* copyright line takes the remaining width (its own text wraps) so the picker
+   stays on the same row, flush right, instead of wrapping below */
+footer .footer-copy .default-content-wrapper > p {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+footer .footer-copy .locale-picker {
+  flex: 0 0 auto;
+}
+
 footer .footer-copy p {
   margin: 0;
   font-size: 14px;
