@@ -20,6 +20,7 @@
  * Authored content remains the no-index fallback.
  */
 import { createOptimizedPicture } from '../../scripts/aem.js';
+import { t as tr } from '../../scripts/i18n.js';
 
 const meta = (n) => document.head.querySelector(`meta[name="${n}"]`)?.content || '';
 
@@ -103,7 +104,7 @@ async function decorateDynamicRail(block) {
     const picks = pool.slice(0, 3);
     if (label && picks.length) {
       const heading = teasers.closest('.rail-card')?.querySelector('.rail-title');
-      if (heading) heading.textContent = `More posts about ${label}`;
+      if (heading) heading.textContent = tr('More posts about {label}', { label });
       teasers.replaceChildren(...picks.map((i) => buildTeaser(i, stripSuffix(i.title) || i.path)));
     }
   }

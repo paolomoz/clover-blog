@@ -27,8 +27,13 @@
  * listing pages scale without authoring hundreds of static cards.
  */
 import { readBlockConfig, createOptimizedPicture, loadCSS } from '../../scripts/aem.js';
+import { t as tr } from '../../scripts/i18n.js';
 
-const slug = (s) => (s || '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+// fold diacritics before slugifying so French taxonomy names match their
+// URL slugs ("Vendre au détail" -> "vendre-au-detail", not "vendre-au-d-tail")
+const slug = (s) => (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/(^-|-$)/g, '');
 
 export async function fetchQueryIndex() {
   // memoize the in-flight promise so concurrent callers (article rail +
@@ -39,7 +44,10 @@ export async function fetchQueryIndex() {
       // single-request cap of the .json pipeline
       const rows = [];
       const pageSize = 500;
-      const getPage = (offset) => fetch(`/query-index.json?offset=${offset}&limit=${pageSize}`)
+      // locale trees have their own index (/ca/query-index.json, …) so
+      // listings surface only their own corpus
+      const localePrefix = (window.location.pathname.match(/^\/(?:ca|ca-fr)(?=\/|$)/) || [''])[0];
+      const getPage = (offset) => fetch(`${localePrefix}/query-index.json?offset=${offset}&limit=${pageSize}`)
         .then((r) => (r.ok ? r.json() : { data: [], total: 0 }))
         .catch(() => ({ data: [], total: 0 }));
       // the corpus is known to be >1000 rows, so open with three concurrent
@@ -94,7 +102,7 @@ export function dedupeByTitle(items) {
 
 export function buildIndexCard(item, opts = {}) {
   const {
-    excerpt = true, ctaText = 'Read more', kicker, eager = false, imgWidth = '660',
+    excerpt = true, ctaText = tr('Read more'), kicker, eager = false, imgWidth = '660',
   } = opts;
   const title = stripSuffix(item.title) || item.path;
   const card = document.createElement('article');
@@ -160,7 +168,7 @@ export default async function decorate(block) {
   const pair = block.classList.contains('featured-pair');
   const webinars = block.classList.contains('webinars');
   const lead = block.classList.contains('lead');
-  const ctaText = webinars ? 'Watch Now' : 'Read more';
+  const ctaText = webinars ? tr('Watch Now') : tr('Read more');
 
   const index = await fetchQueryIndex();
   const here = window.location.pathname;
@@ -225,7 +233,7 @@ export default async function decorate(block) {
         // keep the rail layout consistent: uncategorized rows get a
         // placeholder eyebrow instead of a missing one
         const railKicker = cfg.kicker
-          || (!item.category || item.category === 'Uncategorized' ? 'Featured' : undefined);
+          || (!item.category || item.category === 'Uncategorized' ? tr('Featured') : undefined);
         const built = buildIndexCard(item, { ctaText, kicker: railKicker });
         // ledger rows are typographic: title link carries the action —
         // no thumbnail, no per-row CTA
@@ -272,7 +280,7 @@ export default async function decorate(block) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'button primary';
-    btn.textContent = 'Load more';
+    btn.textContent = tr('Load more');
     btn.addEventListener('click', () => {
       renderMore();
       if (shown >= items.length) wrap.remove();

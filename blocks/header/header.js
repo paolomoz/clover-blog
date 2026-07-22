@@ -149,8 +149,12 @@ function buildListPanel(ul, panel) {
 }
 
 export default async function decorate(block) {
+  // locale trees carry their own chrome: /ca/* -> /ca/nav, /ca-fr/* -> /ca-fr/nav.
+  // An explicit `nav` metadata still wins; otherwise the default is prefixed by
+  // the page's locale so a Canadian page never loads the US nav.
+  const localePrefix = (window.location.pathname.match(/^\/(?:ca|ca-fr)(?=\/|$)/) || [''])[0];
   const navMeta = getMetadata('nav');
-  const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
+  const navPath = navMeta ? new URL(navMeta, window.location).pathname : `${localePrefix}/nav`;
   const fragment = await loadFragment(navPath);
   const sections = [...fragment.querySelectorAll(':scope > div')];
   const [brandSection, menuSection, utilitySection, blogSection] = sections;

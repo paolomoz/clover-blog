@@ -1,6 +1,8 @@
 version: 1
 
 indices:
+  # US-root listing index. Excludes the locale trees so Canadian content never
+  # leaks into US listings/search and category filters don't cross-match.
   default:
     include:
       - '/**'
@@ -9,8 +11,10 @@ indices:
       - '/footer'
       - '/search'
       - '/drafts/**'
+      - '/ca/**'
+      - '/ca-fr/**'
     target: /query-index.json
-    properties:
+    properties: &listing-props
       title:
         select: head > meta[property="og:title"]
         value: attribute(el, 'content')
@@ -48,8 +52,10 @@ indices:
       - '/footer'
       - '/search'
       - '/drafts/**'
+      - '/ca/**'
+      - '/ca-fr/**'
     target: /search-index.json
-    properties:
+    properties: &search-props
       title:
         select: head > meta[property="og:title"]
         value: attribute(el, 'content')
@@ -74,13 +80,49 @@ indices:
       # full-text recall: body prose of the article (WP search matches full
       # post content; median post is ~1100 words, so a 1200-word cap covers
       # ~91% of full-body matches — measured on the wp-cache corpus).
-      # Body prose = direct children of the 'article' section only; blocks
-      # (.sidebar popular-topics/newsletter, .tags chips, .cards related)
-      # are nested divs and thus excluded, so tag-name queries don't match
-      # every page and related-post titles don't cross-match.
       text:
         select: 'main > div.article > p, main > div.article > ul, main > div.article > ol, main > div.article > blockquote, main > div.article > h2, main > div.article > h3, main > div.article > h4'
         value: words(textContent(el), 0, 1200)
       headings:
         select: 'main > div.article > h2, main > div.article > h3'
         values: textContent(el)
+
+  # ---- en-CA (/ca) locale indices ----
+  ca:
+    include:
+      - '/ca/**'
+    exclude:
+      - '/ca/nav'
+      - '/ca/footer'
+      - '/ca/search'
+    target: /ca/query-index.json
+    properties: *listing-props
+  ca-search:
+    include:
+      - '/ca/**'
+    exclude:
+      - '/ca/nav'
+      - '/ca/footer'
+      - '/ca/search'
+    target: /ca/search-index.json
+    properties: *search-props
+
+  # ---- fr-CA (/ca-fr) locale indices ----
+  ca-fr:
+    include:
+      - '/ca-fr/**'
+    exclude:
+      - '/ca-fr/nav'
+      - '/ca-fr/footer'
+      - '/ca-fr/search'
+    target: /ca-fr/query-index.json
+    properties: *listing-props
+  ca-fr-search:
+    include:
+      - '/ca-fr/**'
+    exclude:
+      - '/ca-fr/nav'
+      - '/ca-fr/footer'
+      - '/ca-fr/search'
+    target: /ca-fr/search-index.json
+    properties: *search-props

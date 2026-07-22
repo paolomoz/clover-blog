@@ -14,6 +14,7 @@
  * is not yet published.
  */
 import { createOptimizedPicture } from '../../scripts/aem.js';
+import { t as tr } from '../../scripts/i18n.js';
 
 const PAGE_SIZE = 24;
 const SNIPPET_WORDS = 40;
@@ -41,8 +42,10 @@ async function fetchIndex(target) {
 
 async function fetchSearchIndex() {
   if (!window.searchIndex) {
-    window.searchIndex = (await fetchIndex('/search-index.json'))
-      || (await fetchIndex('/query-index.json'))
+    // locale-scoped index so /ca/search and /ca-fr/search only match their tree
+    const p = (window.location.pathname.match(/^\/(?:ca|ca-fr)(?=\/|$)/) || [''])[0];
+    window.searchIndex = (await fetchIndex(`${p}/search-index.json`))
+      || (await fetchIndex(`${p}/query-index.json`))
       || [];
   }
   return window.searchIndex;
@@ -89,9 +92,9 @@ function scoreItem(item, terms) {
 
 // ---------- facets ----------
 const FACETS = [
-  { key: 'category', label: 'Category', of: (item) => (item.category ? [item.category] : []) },
-  { key: 'tag', label: 'Topic', of: (item) => (item.tags ? String(item.tags).split(/,\s*/).filter(Boolean) : []) },
-  { key: 'type', label: 'Type', of: (item) => (item.template ? [item.template] : []) },
+  { key: 'category', label: tr('Category'), of: (item) => (item.category ? [item.category] : []) },
+  { key: 'tag', label: tr('Topic'), of: (item) => (item.tags ? String(item.tags).split(/,\s*/).filter(Boolean) : []) },
+  { key: 'type', label: tr('Type'), of: (item) => (item.template ? [item.template] : []) },
 ];
 
 // ---------- state ----------
@@ -174,11 +177,11 @@ export default async function decorate(block) {
   form.action = '/search';
   form.method = 'get';
   form.innerHTML = `
-    <label class="search-label" for="search-input">Search the blog</label>
+    <label class="search-label" for="search-input">${tr('Search the blog')}</label>
     <span class="search-icon" aria-hidden="true">
       <svg width="20" height="20" viewBox="0 0 20 20"><circle fill="none" stroke="currentColor" stroke-width="1.1" cx="9" cy="9" r="7"></circle><path fill="none" stroke="currentColor" stroke-width="1.1" d="M14,14 L18,18 L14,14 Z"></path></svg>
     </span>
-    <input id="search-input" type="search" name="q" placeholder="Search the blog" autocomplete="off">
+    <input id="search-input" type="search" name="q" placeholder="${tr('Search the blog')}" autocomplete="off">
   `;
 
   const status = document.createElement('p');
@@ -191,7 +194,7 @@ export default async function decorate(block) {
   const rail = document.createElement('aside');
   rail.className = 'search-facets';
   rail.dataset.role = 'facets';
-  rail.setAttribute('aria-label', 'Filter results');
+  rail.setAttribute('aria-label', tr('Filter results'));
 
   const mainCol = document.createElement('div');
   mainCol.className = 'search-main';
@@ -199,7 +202,7 @@ export default async function decorate(block) {
   const chips = document.createElement('div');
   chips.className = 'search-chips';
   chips.setAttribute('role', 'group');
-  chips.setAttribute('aria-label', 'Active filters');
+  chips.setAttribute('aria-label', tr('Active filters'));
 
   const results = document.createElement('div');
   results.className = 'search-results';
@@ -208,7 +211,7 @@ export default async function decorate(block) {
   const loading = document.createElement('div');
   loading.className = 'search-loading';
   loading.hidden = true;
-  loading.innerHTML = '<span class="search-spinner" aria-hidden="true"></span> Loading more results…';
+  loading.innerHTML = `<span class="search-spinner" aria-hidden="true"></span> ${tr('Loading more results…')}`;
 
   const sentinel = document.createElement('div');
   sentinel.className = 'search-sentinel';
@@ -228,7 +231,7 @@ export default async function decorate(block) {
   let state = readState();
   input.value = state.q;
 
-  status.textContent = 'Loading the article index…';
+  status.textContent = tr('Loading the article index…');
   // exclude navigation/archive pages — the original WP search returns posts,
   // not category/tag archives or hub pages
   const NAV_TEMPLATES = new Set(['listing', 'hub', 'landing']);
@@ -389,7 +392,7 @@ export default async function decorate(block) {
     const clearAll = document.createElement('button');
     clearAll.type = 'button';
     clearAll.className = 'search-chip search-chip-clear';
-    clearAll.textContent = 'Clear filters';
+    clearAll.textContent = tr('Clear filters');
     clearAll.addEventListener('click', clearFacets);
     chips.append(clearAll);
   };
@@ -402,12 +405,14 @@ export default async function decorate(block) {
 
   const updateStatus = () => {
     if (!currentTerms.length && !anyFilter) {
-      status.textContent = `Search ${index.length} articles — or browse by category and topic.`;
+      status.textContent = tr('Search {n} articles — or browse by category and topic.', { n: index.length });
     } else if (!filtered.length) {
-      status.textContent = state.q ? `No results for “${state.q}”.` : 'No results for the selected filters.';
+      status.textContent = state.q ? tr('No results for “{q}”.', { q: state.q }) : tr('No results for the selected filters.');
     } else {
-      const label = state.q ? ` for “${state.q}”` : '';
-      status.textContent = `Showing ${shown} of ${filtered.length} result${filtered.length === 1 ? '' : 's'}${label}`;
+      const label = state.q ? ` ${tr('for “{q}”', { q: state.q })}` : '';
+      status.textContent = tr('Showing {shown} of {total} result{s}{label}', {
+        shown, total: filtered.length, s: filtered.length === 1 ? '' : 's', label,
+      });
     }
   };
 
