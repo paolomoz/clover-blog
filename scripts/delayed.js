@@ -260,9 +260,13 @@ function loadOneTrust() {
     } catch (e) {
       // OT api surface changed: worst case the banner re-prompts
     }
-    // consent decision is now resolved — load the Tealium container, which
-    // reads OneTrust's category state and gates each downstream tag itself
-    loadTealium();
+    // OptanonWrapper also fires on initial load (before any choice), when only
+    // C0001 (strictly necessary) is active — so gate Tealium on an OPTIONAL
+    // category actually being granted: performance (C0002, analytics) or
+    // targeting (C0004, ads). Loads on accept / returning-consented visits,
+    // never on a fresh visit or a reject.
+    const groups = window.OnetrustActiveGroups || '';
+    if (/C0002|C0004/.test(groups)) loadTealium();
   };
   const stub = document.createElement('script');
   stub.src = OT_STUB_SRC;
