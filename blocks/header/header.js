@@ -224,7 +224,9 @@ export default async function decorate(block) {
   utilitySection?.querySelectorAll(':scope a').forEach((a) => {
     const li = document.createElement('li');
     a.classList.remove('button', 'primary', 'secondary');
-    if (a.href.includes('connect.clover.com')) li.className = 'feature-btn';
+    // the "Contact sales" green button: US uses connect.clover.com/get-started,
+    // the CA/FR sites use ca.clover.com/.../lp/contact-clover-sales/
+    if (/connect\.clover\.com|contact-clover-sales|get-started/.test(a.href)) li.className = 'feature-btn';
     if (a.querySelector('img, picture')) li.classList.add('nav-cart');
     li.append(a);
     utility.append(li);

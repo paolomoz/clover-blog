@@ -261,7 +261,8 @@ main .section.hero-container > div {
 }
 
 /* ---- buttons (donor: Lime acts, Forest structures) ---- */
-main a.button {
+main a.button,
+main button.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -278,13 +279,17 @@ main a.button {
 }
 
 main a.button,
-main a.button.primary {
+main a.button.primary,
+main button.button,
+main button.button.primary {
   background: var(--color-accent);
   color: #000;
 }
 
 main a.button:hover,
-main a.button.primary:hover {
+main a.button.primary:hover,
+main button.button:hover,
+main button.button.primary:hover {
   background: var(--color-accent-hover);
   border-color: var(--color-forest);
 }
