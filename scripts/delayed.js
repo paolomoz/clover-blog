@@ -8,8 +8,17 @@
  * (domain-locked), a self-contained fallback banner + floating icon ships
  * instead (localStorage-backed).
  *
- * NOTE: there is no other martech on the migrated site, so consent here is
- * informational — no scripts are gated on the choice.
+ * MarTech: the original site orchestrates its whole tag stack (GA, Adobe
+ * Analytics/AAM, Marketo, Heap, Quantum Metric, Optimizely, ad pixels) through
+ * Tealium iQ. We reproduce that single loader (tags.tiqcdn.com/utag/clover/
+ * blog.clover.com/prod/utag.js) here, CONSENT-GATED: utag.js is injected only
+ * after a consent decision is made (OneTrust's OptanonWrapper fires, or the
+ * fallback banner is accepted). Tealium's own OneTrust integration then gates
+ * each downstream tag by category. Rejecting optional cookies never loads it.
+ *
+ * Caveat: the Tealium profile is provisioned for blog.clover.com; on the
+ * pre-cutover aem.live host some tags fire against that domain context. It
+ * becomes exact at production DNS cutover (same situation as OneTrust).
  */
 
 // secondary font weights (see styles/fonts.css): fetched here so their
@@ -22,6 +31,21 @@ document.head.append(deferredFonts);
 const OT_STUB_SRC = 'https://cdn.cookielaw.org/scripttemplates/otSDKStub.js';
 const OT_DOMAIN_SCRIPT = '019c98ab-9ac2-7f05-932d-9b6f249a33be';
 const CONSENT_KEY = 'clover-blog-consent';
+
+// Tealium iQ — the original's single tag orchestrator (account clover,
+// profile blog.clover.com, prod). Loading utag.js re-enables the managed
+// downstream stack; Tealium's OneTrust integration gates each tag by category.
+const TEALIUM_SRC = 'https://tags.tiqcdn.com/utag/clover/blog.clover.com/prod/utag.js';
+
+function loadTealium() {
+  if (window.utagLoaded) return;
+  window.utagLoaded = true;
+  const s = document.createElement('script');
+  s.src = TEALIUM_SRC;
+  s.type = 'text/javascript';
+  s.async = true;
+  document.head.append(s);
+}
 
 const FALLBACK_CSS = `
   .fc-banner {
@@ -117,7 +141,7 @@ function showFallbackBanner(container) {
     }
     banner.remove();
   };
-  banner.querySelector('.fc-accept').addEventListener('click', () => choose('accepted'));
+  banner.querySelector('.fc-accept').addEventListener('click', () => { choose('accepted'); loadTealium(); });
   banner.querySelector('.fc-reject').addEventListener('click', () => choose('rejected'));
   container.append(banner);
 }
@@ -147,6 +171,7 @@ function initFallbackConsent() {
     // storage unavailable
   }
   if (!choice) showFallbackBanner(container);
+  else if (choice === 'accepted') loadTealium();
 }
 
 /*
@@ -235,6 +260,9 @@ function loadOneTrust() {
     } catch (e) {
       // OT api surface changed: worst case the banner re-prompts
     }
+    // consent decision is now resolved — load the Tealium container, which
+    // reads OneTrust's category state and gates each downstream tag itself
+    loadTealium();
   };
   const stub = document.createElement('script');
   stub.src = OT_STUB_SRC;
